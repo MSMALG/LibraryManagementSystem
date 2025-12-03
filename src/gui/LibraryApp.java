@@ -6,7 +6,7 @@ import javax.swing.SwingUtilities;
 public class LibraryApp {
     public static void main(String[] args) {
 
-        // create tables if not exist
+        // create tables if they do not exist
         DatabaseSetup.createTables();
 
         // start GUI
