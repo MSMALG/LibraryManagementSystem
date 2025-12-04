@@ -18,40 +18,65 @@ public class LoginPanel extends JPanel {
     public LoginPanel(LibraryMainFrame parentFrame) {
         this.parentFrame = parentFrame;
 
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
 
         // title
-        JLabel titleLabel = new JLabel("Library Login", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
-        add(titleLabel, BorderLayout.NORTH);
+        JLabel titleLabel = new JLabel("Library Login");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(titleLabel, gbc);
 
-        // form
-        JPanel formPanel = new JPanel(new GridLayout(3, 2, 8, 8));
+        // Email label
+        gbc.gridwidth = 1;
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.EAST;
+        add(new JLabel("Email:"), gbc);
 
-        JLabel emailLabel = new JLabel("Email:");
-        emailField = new JTextField();
+        // Email field
+        emailField = new JTextField(20);
+        emailField.setPreferredSize(new Dimension(250, 30));
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        add(emailField, gbc);
 
-        JLabel passwordLabel = new JLabel("Password:");
-        passwordField = new JPasswordField();
+        // Password label
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.EAST;
+        add(new JLabel("Password:"), gbc);
 
-      
-        formPanel.add(emailLabel);
-        formPanel.add(emailField);
-        formPanel.add(passwordLabel);
-        formPanel.add(passwordField);
+        // Password field
+        passwordField = new JPasswordField(20);
+        passwordField.setPreferredSize(new Dimension(250, 30));
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        add(passwordField, gbc);
 
-        add(formPanel, BorderLayout.CENTER);
-
-        // buttons
+        // buttons panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-
+        
         loginButton = new JButton("Login");
-        goToRegisterButton = new JButton("Create New Account");
+        loginButton.setPreferredSize(new Dimension(120, 35));
+        loginButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        goToRegisterButton = new JButton("Create Account");
+        goToRegisterButton.setPreferredSize(new Dimension(140, 35));
+        goToRegisterButton.setFont(new Font("Arial", Font.PLAIN, 14));
 
         buttonPanel.add(loginButton);
         buttonPanel.add(goToRegisterButton);
 
-        add(buttonPanel, BorderLayout.SOUTH);
+        gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(buttonPanel, gbc);
 
         addActions();
     }
@@ -107,15 +132,15 @@ public class LoginPanel extends JPanel {
 
         String role = parentFrame.checkCredentialsFromDatabase(email, password);
 
-    if (role == null) {
-        JOptionPane.showMessageDialog(this,
-                "Invalid email or password.",
-                "Login Failed",
-                JOptionPane.ERROR_MESSAGE);
-    } else {
-        parentFrame.showHome(email, role);
+        if (role == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Invalid email or password.",
+                    "Login Failed",
+                    JOptionPane.ERROR_MESSAGE);
+        } else {
+            parentFrame.showHome(email, role);
+        }
     }
-}
 
     // email check
     private boolean isValidEmail(String email) {
