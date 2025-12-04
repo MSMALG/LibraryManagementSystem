@@ -18,30 +18,47 @@ public class HomePanel extends JPanel {
     public HomePanel(LibraryMainFrame parentFrame) {
         this.parentFrame = parentFrame;
 
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(15, 15));
 
         // title
         welcomeLabel = new JLabel("Welcome to the Library System", SwingConstants.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        welcomeLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
         add(welcomeLabel, BorderLayout.NORTH);
 
-        // main buttons
-        JPanel centerPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        // main buttons - centered with proper sizing
+        JPanel centerWrapper = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         searchBooksButton = new JButton("Search Books");
+        searchBooksButton.setPreferredSize(new Dimension(250, 45));
+        searchBooksButton.setFont(new Font("Arial", Font.PLAIN, 15));
+        gbc.gridy = 0;
+        centerWrapper.add(searchBooksButton, gbc);
+
         manageLoansButton = new JButton("Borrow / Return Books");
+        manageLoansButton.setPreferredSize(new Dimension(250, 45));
+        manageLoansButton.setFont(new Font("Arial", Font.PLAIN, 15));
+        gbc.gridy = 1;
+        centerWrapper.add(manageLoansButton, gbc);
+
         adminPanelButton = new JButton("Admin Panel");
+        adminPanelButton.setPreferredSize(new Dimension(250, 45));
+        adminPanelButton.setFont(new Font("Arial", Font.PLAIN, 15));
+        gbc.gridy = 2;
+        centerWrapper.add(adminPanelButton, gbc);
 
-        centerPanel.add(searchBooksButton);
-        centerPanel.add(manageLoansButton);
-        centerPanel.add(adminPanelButton);
-
-        add(centerPanel, BorderLayout.CENTER);
+        add(centerWrapper, BorderLayout.CENTER);
 
         // logout button
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
         logoutButton = new JButton("Logout");
+        logoutButton.setPreferredSize(new Dimension(100, 35));
         bottomPanel.add(logoutButton);
 
         add(bottomPanel, BorderLayout.SOUTH);
@@ -72,44 +89,28 @@ public class HomePanel extends JPanel {
             }
         });
 
-        // Search Books – belongs to second team member
+        // Search Books
         searchBooksButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // instead of showing "Coming Soon"
-            parentFrame.showBooks();
-
+                parentFrame.showBooks();
             }
         });
 
-        // Borrow / Return – belongs to second team member
+        // Borrow / Return
         manageLoansButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                /*JOptionPane.showMessageDialog(HomePanel.this,
-                        "This part belongs to the second team member.",
-                        "Information",
-                        JOptionPane.INFORMATION_MESSAGE);*/
-             parentFrame.showLoans();
-
+                parentFrame.showLoans();
             }
         });
-       
-       /*manageLoansButton.addActionListener(new ActionListener() {
-         @Override
-            public void actionPerformed(ActionEvent e) {
-        parentFrame.showDashboard();
-            }
-        });*/
 
-
-      adminPanelButton.addActionListener(e -> {
-        JFrame adminFrame = new JFrame("Admin Panel");
-        adminFrame.setSize(1000,700);
-        adminFrame.setLocationRelativeTo(null);
-        adminFrame.add(new AdminPanel(null)); // you can pass parent if needed
-        adminFrame.setVisible(true);
-    });
-
+        adminPanelButton.addActionListener(e -> {
+            JFrame adminFrame = new JFrame("Admin Panel");
+            adminFrame.setSize(900,600);
+            adminFrame.setLocationRelativeTo(null);
+            adminFrame.add(new AdminPanel(null));
+            adminFrame.setVisible(true);
+        });
     }
 }
