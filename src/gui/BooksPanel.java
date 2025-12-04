@@ -10,7 +10,6 @@ import java.awt.event.*;
 import java.sql.ResultSet;
 import java.util.List;
 
-
 public class BooksPanel extends JPanel {
 
     private LibraryMainFrame parent;
@@ -31,20 +30,28 @@ public class BooksPanel extends JPanel {
 
     public BooksPanel(LibraryMainFrame parent) {
         this.parent = parent;
-        setLayout(new BorderLayout(8,8));
+        setLayout(new BorderLayout(10,10));
 
         searchController = new SearchController();
         borrowController = new BorrowController();
 
         // top: search controls
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 8,8));
-        keywordField = new JTextField(30);
-        filterCombo = new JComboBox<>(new String[]{"All (Title/Author/ISBN)","Title","Author","ISBN","Category"});
-        searchBtn = new JButton("Search");
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10,10));
+        
         top.add(new JLabel("Search:"));
+        
+        keywordField = new JTextField(25);
+        keywordField.setPreferredSize(new Dimension(250, 30));
         top.add(keywordField);
+        
+        filterCombo = new JComboBox<>(new String[]{"All (Title/Author/ISBN)","Title","Author","ISBN","Category"});
+        filterCombo.setPreferredSize(new Dimension(180, 30));
         top.add(filterCombo);
+        
+        searchBtn = new JButton("Search");
+        searchBtn.setPreferredSize(new Dimension(100, 30));
         top.add(searchBtn);
+        
         add(top, BorderLayout.NORTH);
 
         // center: table
@@ -54,25 +61,25 @@ public class BooksPanel extends JPanel {
         };
         booksTable = new JTable(tableModel);
         booksTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        booksTable.setRowHeight(25);
         add(new JScrollPane(booksTable), BorderLayout.CENTER);
 
         // bottom: actions
-        JPanel bottom = new JPanel(new BorderLayout());
-        JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT, 8,8));
+        JPanel bottom = new JPanel(new BorderLayout(10,10));
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT, 10,10));
+        
         borrowBtn = new JButton("Borrow Selected");
-        returnWindowBtn= new JButton("Return Back");
-
-        bottom.add(returnWindowBtn);
-        add(bottom, BorderLayout.SOUTH);
-
-
-        returnWindowBtn.addActionListener(e -> ReturnWindow() );
+        borrowBtn.setPreferredSize(new Dimension(140, 35));
         
-        
+        returnWindowBtn = new JButton("Return Back");
+        returnWindowBtn.setPreferredSize(new Dimension(130, 35));
+
         btns.add(borrowBtn);
         btns.add(returnWindowBtn);
         
         copiesInfoLabel = new JLabel("Select a book to see copies info.");
+        copiesInfoLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+        
         bottom.add(btns, BorderLayout.WEST);
         bottom.add(copiesInfoLabel, BorderLayout.EAST);
 
@@ -82,6 +89,7 @@ public class BooksPanel extends JPanel {
         searchBtn.addActionListener(e -> doSearch());
         booksTable.getSelectionModel().addListSelectionListener(e -> updateCopiesInfoForSelectedBook());
         borrowBtn.addActionListener(e -> handleBorrow());
+        returnWindowBtn.addActionListener(e -> ReturnWindow());
 
         booksTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -94,45 +102,21 @@ public class BooksPanel extends JPanel {
         this.currentUserEmail = email;
     }
 
-    /*private void doSearch() {
+    private void doSearch() {
         String keyword = keywordField.getText().trim();
         String filter = (String) filterCombo.getSelectedItem();
         try {
-            ResultSet rs = searchController.search(keyword, filter);
+            java.util.List<BookDAO.Book> books = searchController.searchList(keyword, filter);
             tableModel.setRowCount(0);
-            if (rs != null) {
-                while (rs.next()) {
-                    tableModel.addRow(new Object[]{
-                        rs.getInt("book_id"),
-                        rs.getString("title"),
-                        rs.getString("author"),
-                        rs.getString("isbn"),
-                        rs.getString("category")
-                    });
-                }
+            for (BookDAO.Book b : books) {
+                tableModel.addRow(new Object[]{
+                    b.bookId, b.title, b.author, b.isbn, b.category
+                });
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Search error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }*/
-    
-    private void doSearch() {
-    String keyword = keywordField.getText().trim();
-    String filter = (String) filterCombo.getSelectedItem();
-    try {
-        java.util.List<BookDAO.Book> books = searchController.searchList(keyword, filter);
-        tableModel.setRowCount(0);
-        for (BookDAO.Book b : books) {
-            tableModel.addRow(new Object[]{
-                b.bookId, b.title, b.author, b.isbn, b.category
-            });
-        }
-    } catch (Exception ex) {
-        JOptionPane.showMessageDialog(this, "Search error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
-}
-
-
 
     private Integer getSelectedBookId() {
         int row = booksTable.getSelectedRow();
@@ -165,16 +149,10 @@ public class BooksPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Borrowed successfully.");
             updateCopiesInfoForSelectedBook();
         }
-        // refresh loans tab as well (in case UI open)
-        parent.showBooks();// ensures loans tab reloads when user navigates
+        parent.showBooks();
     }
     
     private void ReturnWindow(){
-    
-    parent.showHome(currentUserEmail, TOOL_TIP_TEXT_KEY);
-    
+        parent.showHome(currentUserEmail, TOOL_TIP_TEXT_KEY);
+    }
 }
-    
-}
-
-
