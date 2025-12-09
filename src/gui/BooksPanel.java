@@ -154,7 +154,7 @@ public class BooksPanel extends JPanel {
     
     private void ReturnWindow(){
         String userName = parent.getCurrentUserName();
-        String role = parent.getCurrentUserRole(); // we'll add this method in a sec
+        String role = parent.getCurrentUserRole(); 
         parent.showHome(userName, role, currentUserEmail);
     }
 }
