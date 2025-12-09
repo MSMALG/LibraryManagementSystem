@@ -1,115 +1,18 @@
-/*package gui;
-
-import com.mycompany.librarymanagementsystem.DBConnection;
-import com.mycompany.librarymanagementsystem.HoldQueueManager;
-import java.sql.*;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-
-public class ReturnController {
-
-    public boolean tryReturn(String userEmail, int bookId) {
-        try (Connection conn = DBConnection.connect()) {
-            if (conn == null) {
-                JOptionPaneHelper.showError("DB connection failed.");
-                return false;
-            }
-
-            conn.setAutoCommit(false);
-
-            Integer memberId = getMemberId(conn, userEmail);
-            if (memberId == null) {
-                JOptionPaneHelper.showError("Member not found.");
-                return false;
-            }
-
-            PreparedStatement ps = conn.prepareStatement("""
-                SELECT l.loan_id, l.copy_id, l.due_date
-                FROM loans l JOIN copies c ON l.copy_id = c.copy_id
-                WHERE l.member_id = ? AND c.book_id = ? AND l.return_date IS NULL
-                LIMIT 1
-            """);
-            ps.setInt(1, memberId);
-            ps.setInt(2, bookId);
-            ResultSet rs = ps.executeQuery();
-
-            if (!rs.next()) {
-                JOptionPaneHelper.showInfo("No active loan to return.");
-                return false;
-            }
-
-            int loanId = rs.getInt("loan_id");
-            int copyId = rs.getInt("copy_id");
-            LocalDate due = LocalDate.parse(rs.getString("due_date"));
-            LocalDate today = LocalDate.now();
-
-            long fine = 0;
-            if (today.isAfter(due)) {
-                fine = ChronoUnit.DAYS.between(due, today) * 2; // $2 per day
-            }
-
-            // Update loan as returned
-            PreparedStatement ups = conn.prepareStatement(
-                    "UPDATE loans SET return_date=? WHERE loan_id=?");
-            ups.setString(1, today.toString());
-            ups.setInt(2, loanId);
-            ups.executeUpdate();
-
-            // Mark copy as available
-            PreparedStatement ups2 = conn.prepareStatement(
-                    "UPDATE copies SET status='available' WHERE copy_id=?");
-            ups2.setInt(1, copyId);
-            ups2.executeUpdate();
-
-            // Add fine if any
-            if (fine > 0) {
-                PreparedStatement finePS = conn.prepareStatement("""
-                    INSERT INTO fines(member_id, loan_id, amount)
-                    VALUES (?, ?, ?)
-                """);
-                finePS.setInt(1, memberId);
-                finePS.setInt(2, loanId);
-                finePS.setLong(3, fine);
-                finePS.executeUpdate();
-            }
-
-            conn.commit();
-            
-            // SIMPLE FIX: Just call notifyNext - let it handle its own connection
-            try {
-                HoldQueueManager.notifyNext(bookId);
-            } catch (Exception e) {
-                System.err.println("Notification failed (but return succeeded): " + e.getMessage());
-                // Don't fail the return if notification fails
-            }
-            
-            JOptionPaneHelper.showInfo("Return processed successfully.");
-            return true;
-
-        } catch (Exception e) {
-            JOptionPaneHelper.showError("Return failed: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }*/
 package gui;
 
 import com.mycompany.librarymanagementsystem.DBConnection;
 import com.mycompany.librarymanagementsystem.HoldQueueManager;
 import java.sql.*;
 import java.time.ZoneId;
-import java.time.ZonedDateTime; // Use ZonedDateTime instead of LocalDate
-import java.time.format.DateTimeFormatter; // Need this formatter
+import java.time.ZonedDateTime; // Use ZonedDateTime instead of LocalDate for consistency with sqlite
+import java.time.format.DateTimeFormatter; 
 import java.time.temporal.ChronoUnit;
 import java.time.ZoneOffset;
 
 public class ReturnController {
 
     // Define the formatter used for storage/retrieval
-    //private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ISO_ZONED_DATE_TIME;
-    //private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC);
-    private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // Removed .withZone(ZoneOffset.UTC)
-
+    private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); 
 
     public boolean tryReturn(String userEmail, int bookId) {
         try (Connection conn = DBConnection.connect()) {
@@ -144,33 +47,11 @@ public class ReturnController {
             int loanId = rs.getInt("loan_id");
             int copyId = rs.getInt("copy_id");
             
-            // FIX 1: Parse the full timestamp using ZonedDateTime
-            //ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT);
-            //ZonedDateTime today = ZonedDateTime.now(ZoneOffset.UTC); // Get current time in UTC
-            //ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT);
-            /*ZonedDateTime today = ZonedDateTime.now(ZoneOffset.UTC); 
-            ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT.withZone(ZoneOffset.systemDefault()));
-            // Store the return date the same way
-
-            // FIX 2: Calculate fine based on minutes
-            double fineAmount = 0;
-            if (today.isAfter(due)) {
-                // Calculate difference in minutes, assuming $0.10 per minute from my previous example
-                long minutesLate = ChronoUnit.MINUTES.between(due, today);
-                fineAmount = minutesLate * 0.10; 
-            }
-
-            // Update loan as returned
-            PreparedStatement ups = conn.prepareStatement(
-                    "UPDATE loans SET return_date=? WHERE loan_id=?");
-            // FIX 3: Store the return date in the same full timestamp format
-            ups.setString(1, today.format(DB_FMT));
-            ups.setInt(2, loanId);
-            ups.executeUpdate();*/
-             ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT.withZone(ZoneId.systemDefault()));
+            //Parse the full timestamp using ZonedDateTime
+            ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT.withZone(ZoneId.systemDefault()));
             ZonedDateTime today = ZonedDateTime.now(ZoneId.systemDefault()); // Get current time in local system timezone
             
-            // FIX 2: Calculate fine based on minutes
+            //Calculate fine based on minutes
             double fineAmount = 0;
             if (today.isAfter(due)) {
                 long minutesLate = ChronoUnit.MINUTES.between(due, today);
@@ -178,7 +59,7 @@ public class ReturnController {
             }
 
             // Update loan as returned
-            PreparedStatement ups = conn.prepareStatement( // 'ups' is declared here
+            PreparedStatement ups = conn.prepareStatement( 
                     "UPDATE loans SET return_date=? WHERE loan_id=?");
             // Use 'today' ZonedDateTime formatted as a string
             ups.setString(1, today.format(DB_FMT)); 
@@ -197,17 +78,15 @@ public class ReturnController {
                     INSERT INTO fines(member_id, amount) VALUES (?, ?)
                 """);
                 finePS.setInt(1, memberId);
-                // finePS.setInt(2, loanId); <-- Removed loan_id as per your DB setup (fines table definition)
-                finePS.setDouble(2, fineAmount); // Use setDouble for real values
+                finePS.setDouble(2, fineAmount);
                 finePS.executeUpdate();
                 
-                // Add a notification/pop-up here if desired (as discussed previously)
                 JOptionPaneHelper.showInfo(String.format("Book was returned late by %d minutes. A fine of $%.2f has been applied.", ChronoUnit.MINUTES.between(due, today), fineAmount));
             }
 
             conn.commit();
             
-            // SIMPLE FIX: Just call notifyNext - let it handle its own connection
+            // call notifyNext and let it handle its own connection
             try {
                 HoldQueueManager.notifyNext(bookId);
             } catch (Exception e) {
@@ -235,7 +114,7 @@ public class ReturnController {
         return null;
     }
     
-    // Keep these cleanup methods as they were working
+    //cleanup methods a
     public static void cleanupExpiredHoldsAndAdvanceQueue(int bookId) {
         try (Connection conn = DBConnection.connect()) {
             conn.setAutoCommit(false);
