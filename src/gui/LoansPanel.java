@@ -150,7 +150,7 @@ public class LoansPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please select a loan first.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        // we need the book_id to call tryRenew; look it up
+        // we need the book_id to call tryRenew
         Integer copyId = getSelectedCopyId();
         if (copyId == null) return;
         try (Connection conn = DBConnection.connect()) {
