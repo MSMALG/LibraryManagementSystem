@@ -61,7 +61,7 @@ public class HomePanel extends JPanel {
 
         add(centerWrapper, BorderLayout.CENTER);
 
-        // BOTTOM PANEL: NOTIFICATIONS BUTTON + LOGOUT 
+        // BOTTOM PANEL: notifications button and Logout
         bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -88,7 +88,7 @@ public class HomePanel extends JPanel {
         notificationBtn.add(badgeLabel);
 
 
-        // Click → show notifications
+        // Click to show notifications
         notificationBtn.addActionListener(e -> showNotificationsPopup());
 
         // Logout
@@ -121,16 +121,9 @@ public class HomePanel extends JPanel {
         adminPanelButton.addActionListener(e -> parentFrame.attemptShowAdminPanel(currentUserRole));
     }
 
-    // This is called only on login — shows popup ONLY if unread exist
+    // This is called only on login shows popup ONLY if unread exist
     public void showUnreadNotificationsOnlyOnce() {
         if (currentUserEmail == null) return;
-
-        //try (Connection conn = DBConnection.connect();
-          //  PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
-            //ps.setString(1, currentUserEmail);
-            //try (ResultSet rs = ps.executeQuery()) {
-               // if (!rs.next()) return;
-                //int memberId = rs.getInt("member_id");
                try {
                     findCurrentMemberId(); 
                     if (currentMemberId == -1) return;
@@ -153,7 +146,7 @@ public class HomePanel extends JPanel {
                 if (choice == 0) {
                     NotificationDAO.markAllRead(currentMemberId);
                     JOptionPane.showMessageDialog(this, "All notifications marked as read!");
-                    updateNotificationBadge(); ////////
+                    updateNotificationBadge(); 
 
                 }
         } catch (Exception ex) {
@@ -161,21 +154,14 @@ public class HomePanel extends JPanel {
         }
     }
 
-    // This is called when user clicks the button ;always shows something
+    // This is called when user clicks the button; always shows something
     public void showNotificationsPopup() {
         if (currentUserEmail == null) {
             JOptionPane.showMessageDialog(this, "Please log in first.");
             return;
         }
-
-    //try (Connection conn = DBConnection.connect();
-      //   PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
-        //ps.setString(1, currentUserEmail);
-        //try (ResultSet rs = ps.executeQuery()) {
-          //  if (!rs.next()) return;
-            //int memberId = rs.getInt("member_id");
             
-            try {
+        try {
                  findCurrentMemberId();
             if (currentMemberId == -1) return;
             List<String> notifs = NotificationDAO.getUnreadNotifications(currentMemberId);
@@ -200,7 +186,6 @@ public class HomePanel extends JPanel {
                     updateNotificationBadge(); 
                     
                 }
-            
         }
     } catch (Exception ex) {
         ex.printStackTrace();
@@ -233,7 +218,7 @@ public class HomePanel extends JPanel {
             } else {
                 badgeLabel.setVisible(false);
             }
-            // Revalidate/repaint necessary since we used null layout
+            // Revalidate since we used null layout
             notificationBtn.revalidate();
             notificationBtn.repaint();
             
