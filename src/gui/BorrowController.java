@@ -4,11 +4,15 @@ import com.mycompany.librarymanagementsystem.DBConnection;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset; 
+import java.time.ZonedDateTime; 
 
 public class BorrowController {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final int LOAN_DAYS = 14;
+    private static final int LOAN_MINS = 2;
+
 
     public boolean tryBorrow(String userEmail, int bookId) {
         try (Connection conn = DBConnection.connect()) {
@@ -34,9 +38,11 @@ public class BorrowController {
                 return false;
             }
 
-            String today = LocalDate.now().format(FMT);
-            String due = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
-
+            //String today = LocalDate.now().format(FMT);
+            //String due = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
+            //String due = ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(LOAN_MINS).format(FMT);
+            String today = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+            String due = ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(LOAN_MINS).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
             try (PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO loans(member_id, copy_id, loan_date, due_date) VALUES(?,?,?,?)")) {
                 ps.setInt(1, memberId);
