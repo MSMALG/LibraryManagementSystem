@@ -1,15 +1,11 @@
 package com.mycompany.librarymanagementsystem;
-
 import java.sql.*;
-
 public class HoldDAO {
-
     public static class Hold {
         public int holdId;
         public int memberId;
         public int bookId;
         public String status;
-
         public Hold(int holdId, int memberId, int bookId, String status) {
             this.holdId = holdId;
             this.memberId = memberId;
@@ -17,13 +13,11 @@ public class HoldDAO {
             this.status = status;
         }
     }
-
     // Place a new hold in the queue
     public static void placeHold(int memberId, int bookId) {
         Connection conn = DBConnection.connect();
         String posSql = "SELECT COALESCE(MAX(position), 0) + 1 AS nextPos FROM holds WHERE book_id=?";
         String insSql = "INSERT INTO holds(member_id, book_id, position) VALUES(?,?,?)";
-
         try (PreparedStatement ps1 = conn.prepareStatement(posSql)) {
             ps1.setInt(1, bookId);
             try (ResultSet rs = ps1.executeQuery()) {
@@ -39,9 +33,8 @@ public class HoldDAO {
             e.printStackTrace();
         }
     }
-
     // Find the next WAITING hold for a book
-    public static Hold findNextWaiting(int bookId) {
+   public static Hold findNextWaiting(int bookId) {
         String sql = "SELECT * FROM holds WHERE book_id=? AND status='WAITING' ORDER BY position ASC LIMIT 1";
         try (Connection conn = DBConnection.connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -61,7 +54,27 @@ public class HoldDAO {
         }
         return null;
     }
-
+    // NEW — CORRECT (skips NO_SHOW and PICKED_UP)
+/*public static Hold findNextWaiting(int bookId) {
+    String sql = "SELECT * FROM holds WHERE book_id = ? AND status NOT IN ('NO_SHOW', 'PICKED_UP') ORDER BY position ASC LIMIT 1";
+    try (Connection conn = DBConnection.connect();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, bookId);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return new Hold(
+                    rs.getInt("hold_id"),
+                    rs.getInt("member_id"),
+                    rs.getInt("book_id"),
+                    rs.getString("status")
+                );
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}*/
     // Mark a hold as notified and set expiration
     public static void markNotified(int holdId, String expiresAt) {
         String sql = "UPDATE holds SET status='NOTIFIED', notified_at=datetime('now'), expires_at=? WHERE hold_id=?";
@@ -74,7 +87,6 @@ public class HoldDAO {
             e.printStackTrace();
         }
     }
-
     // Remove expired NOTIFIED holds so the next in queue can be notified
 public static void removeExpiredHolds() {
     String sql = "DELETE FROM holds WHERE status='NOTIFIED' AND expires_at < datetime('now')";
@@ -85,8 +97,7 @@ public static void removeExpiredHolds() {
         e.printStackTrace();
     }
 }
-
-// Cancel a specific hold 
+// Cancel a specific hold
 public static void cancelHold(int holdId) {
     String sql = "DELETE FROM holds WHERE hold_id=?";
     try (Connection conn = DBConnection.connect();
@@ -97,5 +108,4 @@ public static void cancelHold(int holdId) {
         e.printStackTrace();
     }
 }
-
-}
+} 

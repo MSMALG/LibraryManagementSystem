@@ -30,8 +30,8 @@ public class DBConnection {
         return conn;
     }
 
-    // Really important: DO NOT close the database from anywhere
+    // to not close the database from anywhere
     public static void neverClose() {
-        // left empty intentionally
+        
     }
 }

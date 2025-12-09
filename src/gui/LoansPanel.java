@@ -1,38 +1,30 @@
 package gui;
-
 import com.mycompany.librarymanagementsystem.DBConnection;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
-
 public class LoansPanel extends JPanel {
-
     private LibraryMainFrame parent;
     private JTable loansTable;
     private DefaultTableModel loansModel;
     private JButton returnBtn;
     private JButton renewBtn;
     private JButton returnWindowBtn;
-    
+   
     private String currentUserEmail;
     private ReturnController returnController;
     private BorrowController borrowController; // reuse renew from borrowController
-
     public LoansPanel(LibraryMainFrame parent) {
         this.parent = parent;
         this.returnController = new ReturnController();
         this.borrowController = new BorrowController();
-
         setLayout(new BorderLayout(8,8));
-
         loansModel = new DefaultTableModel(new Object[]{"loan_id","Title","Copy ID","Loan Date","Due Date"}, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         loansTable = new JTable(loansModel);
         add(new JScrollPane(loansTable), BorderLayout.CENTER);
-
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT, 8,8));
         returnBtn = new JButton("Return Selected");
         renewBtn = new JButton("Renew Selected");
@@ -41,20 +33,16 @@ public class LoansPanel extends JPanel {
         bottom.add(renewBtn);
         bottom.add(returnWindowBtn);
         add(bottom, BorderLayout.SOUTH);
-
         returnBtn.addActionListener(e -> handleReturn());
         renewBtn.addActionListener(e -> handleRenew());
         returnWindowBtn.addActionListener(e -> ReturnWindow() );
     }
-
     public void setCurrentUserEmail(String email) {
         this.currentUserEmail = email;
     }
-
     public void reloadLoans() {
         loansModel.setRowCount(0);
         if (currentUserEmail == null) return;
-
         try (Connection conn = DBConnection.connect()) {
             // get member id
             PreparedStatement mps = conn.prepareStatement("SELECT member_id FROM members WHERE email=?");
@@ -62,7 +50,6 @@ public class LoansPanel extends JPanel {
             ResultSet mrs = mps.executeQuery();
             if (!mrs.next()) return;
             int memberId = mrs.getInt("member_id");
-
             String sql = """
                 SELECT l.loan_id, c.copy_id, b.title, l.loan_date, l.due_date
                 FROM loans l
@@ -86,8 +73,6 @@ public class LoansPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Error loading loans: " + e.getMessage());
         }
     }
-
-    // تم تعديل هذه الدوال لتكون أكثر مرونة في جلب Integer
     private Integer getSelectedLoanId() {
         int row = loansTable.getSelectedRow();
         if (row == -1) return null;
@@ -104,8 +89,6 @@ public class LoansPanel extends JPanel {
         }
         return null;
     }
-
-    // تم تعديل هذه الدوال لتكون أكثر مرونة في جلب Integer
     private Integer getSelectedCopyId() {
         int row = loansTable.getSelectedRow();
         if (row == -1) return null;
@@ -122,17 +105,14 @@ public class LoansPanel extends JPanel {
         }
         return null;
     }
-
     private void handleReturn() {
-        Integer loanId = getSelectedLoanId(); // الحصول على loanId
+        Integer loanId = getSelectedLoanId();
         if (loanId == null) {
             JOptionPane.showMessageDialog(this, "Please select a loan first.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-
         Integer selectedBookIdFromTable = null;
         try (Connection conn = DBConnection.connect()) {
-            // استخدام loanId لجلب book_id الصحيح من قاعدة البيانات
             PreparedStatement ps = conn.prepareStatement("""
                 SELECT b.book_id
                 FROM loans l
@@ -152,21 +132,16 @@ public class LoansPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Error retrieving book ID for return: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
         if (selectedBookIdFromTable == null) {
             JOptionPane.showMessageDialog(this, "Unable to process return. Book ID not found.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        // الآن نمرر bookId الصحيح إلى returnController
         boolean ok = returnController.tryReturn(currentUserEmail, selectedBookIdFromTable);
         if (ok) {
-            // رسالة النجاح ستظهر من ReturnController (يمكنك إزالتها هنا إذا كنت تفضل رسالة واحدة)
             // JOptionPane.showMessageDialog(this, "Returned successfully.");
-            reloadLoans(); // تحديث قائمة القروض
+            reloadLoans();
         }
     }
-
     private void handleRenew() {
         Integer loanId = getSelectedLoanId();
         if (loanId == null) {
@@ -194,11 +169,10 @@ public class LoansPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Renew failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+   
     private void ReturnWindow(){
-    
-    parent.showHome(currentUserEmail, TOOL_TIP_TEXT_KEY);
-    
+    String userName = parent.getCurrentUserName();
+    String role = parent.getCurrentUserRole();
+    parent.showHome(userName, role, currentUserEmail);
+    }
 }
-}
-

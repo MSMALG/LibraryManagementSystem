@@ -155,7 +155,8 @@ public class RegisterPanel extends JPanel {
         }
 
         // email check
-        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+        String standardizedEmail = email.toLowerCase();
+        if (!standardizedEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             JOptionPane.showMessageDialog(this,
                     "Please enter a valid email address.",
                     "Invalid Email",
@@ -163,7 +164,8 @@ public class RegisterPanel extends JPanel {
             return;
         }
 
-        // password length
+        // password length and strength
+        int upperChars = 0, lowerChars = 0, specialChars = 0, digits = 0;
         if (password.length() < 8) {
             JOptionPane.showMessageDialog(this,
                     "Password must be at least 8 characters.",
@@ -171,7 +173,58 @@ public class RegisterPanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+        else {
+            for (int i = 0; i < password.length(); i++) {
+                char ch = password.charAt(i);
+                if (Character.isUpperCase(ch)) {
+                    upperChars++;
+                } else if (Character.isLowerCase(ch)) {
+                    lowerChars++;
+                } else if (Character.isDigit(ch)) {
+                    digits++;
+                } else {
+                    specialChars++;
+                }
+            }
+        }
+        // password strength 
+        if (upperChars == 0)
+        {
+            //System.out.println("Password must contain at least one uppercase character!\n");
+            JOptionPane.showMessageDialog(this,
+                        "Password must contain at least one uppercase character.",
+                        "Weak Password",
+                        JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+            if (lowerChars == 0)
+            {
+                //System.out.println("Password must contain at least one lowercase character!\n");
+                JOptionPane.showMessageDialog(this,
+                        "Password must contain at least one lowercase character.",
+                        "Weak Password",
+                        JOptionPane.ERROR_MESSAGE);
+            return;
+            }
+            if (specialChars == 0)
+            {
+                //System.out.println("Password must contain at least one special character!\n");
+                JOptionPane.showMessageDialog(this,
+                        "Password must contain at least one special character.",
+                        "Weak Password",
+                        JOptionPane.ERROR_MESSAGE);
+            return;
+            }
+            if (digits == 0)
+            {
+                //System.out.println("Password must contain at least one digit!\n");
+                JOptionPane.showMessageDialog(this,
+                        "Password must contain at least one digit character.",
+                        "Weak Password",
+                        JOptionPane.ERROR_MESSAGE);
+            return;
+            }
+        
         // same password
         if (!password.equals(confirmPassword)) {
             JOptionPane.showMessageDialog(this,

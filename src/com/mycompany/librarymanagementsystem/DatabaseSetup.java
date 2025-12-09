@@ -78,11 +78,24 @@ public class DatabaseSetup {
           
 
             // 1) Add loan_id to fines (if not present)
-            try {
+            /*try {
                 stmt.execute("ALTER TABLE fines ADD COLUMN loan_id INTEGER;");
             } catch (Exception ignore) {
             }
 
+            try {
+                stmt.execute("ALTER TABLE holds ADD COLUMN status TEXT DEFAULT 'WAITING';");
+            } catch (Exception ignore) {}
+
+            try {
+                stmt.execute("ALTER TABLE holds ADD COLUMN notified_at TEXT;");
+            } catch (Exception ignore) {}
+
+            try {
+                stmt.execute("ALTER TABLE holds ADD COLUMN expires_at TEXT;");
+            } catch (Exception ignore) {}*/
+            
+            // In DatabaseSetup.java - Update the ALTER TABLE statements
             try {
                 stmt.execute("ALTER TABLE holds ADD COLUMN status TEXT DEFAULT 'WAITING';");
             } catch (Exception ignore) {}

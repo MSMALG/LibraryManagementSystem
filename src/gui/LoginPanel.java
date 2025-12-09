@@ -4,6 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import com.mycompany.librarymanagementsystem.DBConnection;
 
 public class LoginPanel extends JPanel {
 
@@ -129,18 +133,34 @@ public class LoginPanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        String role = parentFrame.checkCredentialsFromDatabase(email, password);
-
+        
+        
+        String standardizedEmail = email.toLowerCase(); 
+        String role = parentFrame.checkCredentialsFromDatabase(standardizedEmail, password);
         if (role == null) {
             JOptionPane.showMessageDialog(this,
                     "Invalid email or password.",
                     "Login Failed",
                     JOptionPane.ERROR_MESSAGE);
-        } else {
-            parentFrame.showHome(email, role);
+            return;
         }
-    }
+        // Fetch the real name from DB
+        String realName = standardizedEmail;  // fallback
+            try (Connection conn = DBConnection.connect();
+                 PreparedStatement ps = conn.prepareStatement("SELECT name FROM members WHERE email = ?")) {
+                ps.setString(1, standardizedEmail);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        realName = rs.getString("name");
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            // pass the REAL name from the start
+            parentFrame.showHome(realName, role, standardizedEmail);
+           }
 
     // email check
     private boolean isValidEmail(String email) {

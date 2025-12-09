@@ -26,7 +26,6 @@ public class BorrowController {
                 return false;
             }
 
-            // هل فيه نسخة متاحة؟
             int copyId = getAvailableCopy(conn, bookId);
             if (copyId == -1) {
                 JOptionPaneHelper.showInfo("No available copies. A hold has been placed.");
@@ -35,7 +34,6 @@ public class BorrowController {
                 return false;
             }
 
-            // استعارة النسخة
             String today = LocalDate.now().format(FMT);
             String due = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
 
@@ -53,6 +51,13 @@ public class BorrowController {
                 ps.setInt(1, copyId);
                 ps.executeUpdate();
             }
+            
+            try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE holds SET status = 'PICKED_UP' WHERE member_id = ? AND book_id = ? AND status = 'NOTIFIED'")) {
+               ps.setInt(1, memberId);
+               ps.setInt(2, bookId);
+               ps.executeUpdate();
+           }
 
             conn.commit();
             return true;
@@ -79,7 +84,6 @@ public class BorrowController {
                 return false;
             }
 
-            // ابحث عن استعارة نشطة
             PreparedStatement ps = conn.prepareStatement("""
                 SELECT l.loan_id, l.copy_id
                 FROM loans l JOIN copies c ON l.copy_id=c.copy_id
@@ -97,7 +101,6 @@ public class BorrowController {
 
             int loanId = rs.getInt("loan_id");
 
-            // حدّد موعد جديد
             String newDue = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
 
             PreparedStatement ups = conn.prepareStatement(
@@ -145,4 +148,3 @@ public class BorrowController {
         ps.executeUpdate();
     }
 }
-

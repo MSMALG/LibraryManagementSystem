@@ -3,12 +3,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package gui;
-
 /**
  *
  * @author user
  */
-
 import com.mycompany.librarymanagementsystem.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,43 +14,34 @@ import java.awt.*;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.List;
-
 public class AdminPanel extends JPanel {
-
     private LibraryMainFrame parent;
     private JTabbedPane tabs;
-
     // Books tab
     private JTable booksTable;
     private DefaultTableModel booksModel;
     private JButton addBookBtn, editBookBtn, delBookBtn, refreshBooksBtn;
-
     // Members tab
     private JTable membersTable;
     private DefaultTableModel membersModel;
     private JButton addMemberBtn, editMemberBtn, delMemberBtn, refreshMembersBtn;
-
     // Holds tab
     private JTable holdsTable;
     private DefaultTableModel holdsModel;
     private JButton notifyNextBtn, cancelHoldBtn, refreshHoldsBtn;
-
     // Reports tab
     private JButton exportTopBorrowedBtn, exportOverdueBtn, exportFinesBtn;
-
     public AdminPanel(LibraryMainFrame parent) {
         this.parent = parent;
         setLayout(new BorderLayout());
         tabs = new JTabbedPane();
-
         initBooksTab();
         initMembersTab();
         initHoldsTab();
         initReportsTab();
-
+        initCopiesTab();
         add(tabs, BorderLayout.CENTER);
     }
-
     private void initBooksTab() {
         JPanel p = new JPanel(new BorderLayout());
         booksModel = new DefaultTableModel(new Object[]{"book_id","Title","Author","ISBN","Category"}, 0) {
@@ -67,7 +56,6 @@ public class AdminPanel extends JPanel {
         refreshBooksBtn = new JButton("Refresh");
         btns.add(addBookBtn); btns.add(editBookBtn); btns.add(delBookBtn); btns.add(refreshBooksBtn);
         p.add(btns, BorderLayout.SOUTH);
-
         refreshBooksBtn.addActionListener(e -> loadBooks());
         addBookBtn.addActionListener(e -> showBookDialog(null));
         editBookBtn.addActionListener(e -> {
@@ -93,18 +81,15 @@ public class AdminPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Delete failed: " + ex.getMessage());
             }
         });
-
         tabs.addTab("Books", p);
         loadBooks();
     }
-
     private void showBookDialog(Integer bookId) {
         // dialog for add/edit
         JTextField titleField = new JTextField();
         JTextField authorField = new JTextField();
         JTextField isbnField = new JTextField();
         JTextField categoryField = new JTextField();
-
         if (bookId != null) {
             try {
                 Connection conn = DBConnection.connect();
@@ -124,16 +109,13 @@ public class AdminPanel extends JPanel {
                 return;
             }
         }
-
         JPanel p = new JPanel(new GridLayout(4,2,6,6));
         p.add(new JLabel("Title:")); p.add(titleField);
         p.add(new JLabel("Author:")); p.add(authorField);
         p.add(new JLabel("ISBN:")); p.add(isbnField);
         p.add(new JLabel("Category:")); p.add(categoryField);
-
         int res = JOptionPane.showConfirmDialog(this, p, bookId == null ? "Add Book" : "Edit Book", JOptionPane.OK_CANCEL_OPTION);
         if (res != JOptionPane.OK_OPTION) return;
-
         try {
             if (bookId == null) {
                 BookDAO.addBook(titleField.getText(), authorField.getText(), isbnField.getText(), categoryField.getText());
@@ -153,7 +135,6 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Save failed: " + ex.getMessage());
         }
     }
-
     private void initMembersTab() {
         JPanel p = new JPanel(new BorderLayout());
         membersModel = new DefaultTableModel(new Object[]{"member_id","Name","Email","Role"}, 0) {
@@ -168,7 +149,6 @@ public class AdminPanel extends JPanel {
         refreshMembersBtn = new JButton("Refresh");
         btns.add(addMemberBtn); btns.add(editMemberBtn); btns.add(delMemberBtn); btns.add(refreshMembersBtn);
         p.add(btns, BorderLayout.SOUTH);
-
         refreshMembersBtn.addActionListener(e -> loadMembers());
         addMemberBtn.addActionListener(e -> showMemberDialog(null));
         editMemberBtn.addActionListener(e -> {
@@ -194,16 +174,13 @@ public class AdminPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Delete failed: " + ex.getMessage());
             }
         });
-
         tabs.addTab("Members", p);
         loadMembers();
     }
-
     private void showMemberDialog(Integer memberId) {
         JTextField nameField = new JTextField();
         JTextField emailField = new JTextField();
         JComboBox<String> roleBox = new JComboBox<>(new String[]{"Member","Librarian"});
-
         if (memberId != null) {
             try {
                 Connection conn = DBConnection.connect();
@@ -222,15 +199,12 @@ public class AdminPanel extends JPanel {
                 return;
             }
         }
-
         JPanel p = new JPanel(new GridLayout(3,2,6,6));
         p.add(new JLabel("Name:")); p.add(nameField);
         p.add(new JLabel("Email:")); p.add(emailField);
         p.add(new JLabel("Role:")); p.add(roleBox);
-
         int res = JOptionPane.showConfirmDialog(this, p, memberId == null ? "Add Member" : "Edit Member", JOptionPane.OK_CANCEL_OPTION);
         if (res != JOptionPane.OK_OPTION) return;
-
         try {
             if (memberId == null) {
                 MemberDAO.addMember(nameField.getText(), emailField.getText(), "password123", (String) roleBox.getSelectedItem());
@@ -249,7 +223,6 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Save failed: " + ex.getMessage());
         }
     }
-
     private void initHoldsTab() {
         JPanel p = new JPanel(new BorderLayout());
         holdsModel = new DefaultTableModel(new Object[]{"hold_id","book_id","member_id","position","status","notified_at","expires_at"}, 0) {
@@ -263,19 +236,39 @@ public class AdminPanel extends JPanel {
         refreshHoldsBtn = new JButton("Refresh");
         btns.add(notifyNextBtn); btns.add(cancelHoldBtn); btns.add(refreshHoldsBtn);
         p.add(btns, BorderLayout.SOUTH);
-
         refreshHoldsBtn.addActionListener(e -> loadHolds());
         notifyNextBtn.addActionListener(e -> {
-            Integer bookId = getSelectedBookIdFromHolds();
-            if (bookId == null) { JOptionPane.showMessageDialog(this, "Select a hold row to derive book."); return; }
-            try {
-                HoldQueueManager.notifyNext(bookId);
-                JOptionPane.showMessageDialog(this, "Notified next (if any).");
-                loadHolds();
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Notify failed: " + ex.getMessage());
-            }
-        });
+    Integer bookId = getSelectedBookIdFromHolds();
+    if (bookId == null) {
+        JOptionPane.showMessageDialog(this, "Please select a hold row first.");
+        return;
+    }
+    // Check if any copy is available
+    boolean hasAvailableCopy = false;
+    try (Connection conn = DBConnection.connect();
+         PreparedStatement ps = conn.prepareStatement(
+             "SELECT 1 FROM copies WHERE book_id = ? AND status = 'available' LIMIT 1")) {
+        ps.setInt(1, bookId);
+        try (ResultSet rs = ps.executeQuery()) {
+            hasAvailableCopy = rs.next();
+        }
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+    if (!hasAvailableCopy) {
+        JOptionPane.showMessageDialog(this,
+            "Cannot notify: No copies are available yet.\nWait for a return first.",
+            "Action Blocked", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    try {
+        HoldQueueManager.notifyNext(bookId);
+        JOptionPane.showMessageDialog(this, "Next member notified!");
+        loadHolds();
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(this, "Notify failed: " + ex.getMessage());
+    }
+});
         cancelHoldBtn.addActionListener(e -> {
             int row = holdsTable.getSelectedRow();
             if (row == -1) return;
@@ -287,11 +280,9 @@ public class AdminPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Cancel failed: " + ex.getMessage());
             }
         });
-
         tabs.addTab("Holds", p);
         loadHolds();
     }
-
     private void initReportsTab() {
         JPanel p = new JPanel(new GridLayout(3,1,8,8));
         exportTopBorrowedBtn = new JButton("Export Top Borrowed (CSV)");
@@ -303,7 +294,6 @@ public class AdminPanel extends JPanel {
         exportFinesBtn.addActionListener(e -> doExportFines());
         tabs.addTab("Reports", p);
     }
-
     private Integer getSelectedBookIdFromHolds() {
         int row = holdsTable.getSelectedRow();
         if (row == -1) return null;
@@ -311,7 +301,6 @@ public class AdminPanel extends JPanel {
         if (v instanceof Integer) return (Integer) v;
         try { return Integer.parseInt(v.toString()); } catch (Exception ex) { return null; }
     }
-
    private void loadBooks() {
     booksModel.setRowCount(0); // clear table
     try {
@@ -330,8 +319,6 @@ public class AdminPanel extends JPanel {
         JOptionPane.showMessageDialog(this, "Failed loading books: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
-
-
     private void loadMembers() {
         membersModel.setRowCount(0);
         try {
@@ -350,7 +337,6 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Failed loading members: " + e.getMessage());
         }
     }
-
     private void loadHolds() {
         holdsModel.setRowCount(0);
         try {
@@ -372,7 +358,6 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Failed loading holds: " + e.getMessage());
         }
     }
-
     private void doExportTop() {
         try {
             List<String[]> rows = ReportsController.topBorrowedBooks(50);
@@ -382,7 +367,6 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Export failed: " + e.getMessage());
         }
     }
-
     private void doExportOverdue() {
         try {
             List<String[]> rows = ReportsController.overdueBooks();
@@ -392,7 +376,6 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Export failed: " + e.getMessage());
         }
     }
-
     private void doExportFines() {
         try {
             List<String[]> rows = ReportsController.finesSummary();
@@ -402,5 +385,67 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Export failed: " + e.getMessage());
         }
     }
+   
+    private void initCopiesTab() {
+    JPanel p = new JPanel(new BorderLayout());
+    // Table showing all copies
+    DefaultTableModel copiesModel = new DefaultTableModel(new Object[]{"copy_id", "book_id", "Title", "Status"}, 0) {
+        @Override public boolean isCellEditable(int r, int c) { return false; }
+    };
+    JTable copiesTable = new JTable(copiesModel);
+    p.add(new JScrollPane(copiesTable), BorderLayout.CENTER);
+    // Buttons
+    JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JButton addCopyBtn = new JButton("Add Copy of Selected Book");
+    JButton refreshBtn = new JButton("Refresh");
+    btns.add(addCopyBtn);
+    btns.add(refreshBtn);
+    p.add(btns, BorderLayout.SOUTH);
+    // Load all copies
+    Runnable loadCopies = () -> {
+        copiesModel.setRowCount(0);
+        try (Connection conn = DBConnection.connect();
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT c.copy_id, c.book_id, b.title, c.status FROM copies c JOIN books b ON c.book_id = b.book_id ORDER BY c.book_id")) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                copiesModel.addRow(new Object[]{
+                    rs.getInt("copy_id"),
+                    rs.getInt("book_id"),
+                    rs.getString("title"),
+                    rs.getString("status")
+                });
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error loading copies: " + ex.getMessage());
+        }
+    };
+    refreshBtn.addActionListener(e -> loadCopies.run());
+    addCopyBtn.addActionListener(e -> {
+        // Get selected book from Books tab or prompt
+        int selectedRow = booksTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a book in the Books tab first!");
+            return;
+        }
+        int bookId = (Integer) booksModel.getValueAt(selectedRow, 0);
+        int count = JOptionPane.showConfirmDialog(this,
+            "Add one physical copy of this book?\nBook ID: " + bookId,
+            "Add Copy", JOptionPane.YES_NO_OPTION);
+        if (count == JOptionPane.YES_OPTION) {
+            try (Connection conn = DBConnection.connect();
+                 PreparedStatement ps = conn.prepareStatement(
+                     "INSERT INTO copies(book_id, status) VALUES(?, 'available')")) {
+                ps.setInt(1, bookId);
+                ps.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Copy added successfully!");
+                loadCopies.run();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Failed to add copy: " + ex.getMessage());
+            }
+        }
+    });
+    tabs.addTab("Copies", p);
+    loadCopies.run();
 }
-
+}

@@ -15,7 +15,7 @@ import java.util.List;
 
 public class NotificationDAO {
 
-    public static void addNotification(int memberId, String message) throws SQLException {
+    /*public static void addNotification(int memberId, String message) throws SQLException {
         Connection conn = DBConnection.connect();
         String sql = "INSERT INTO notifications(member_id, message, created_at, read) VALUES(?, ?, datetime('now'), 0)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -23,7 +23,18 @@ public class NotificationDAO {
             ps.setString(2, message);
             ps.executeUpdate();
         }
+    }*/
+    // In NotificationDAO.java or where you create notifications
+public static void addNotification(int memberId, String message) throws SQLException {
+    Connection conn = DBConnection.connect();
+    String sql = "INSERT INTO notifications(member_id, message, created_at, read) " +
+                 "VALUES(?, ?, datetime('now'), 0)";
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, memberId);
+        ps.setString(2, message);
+        ps.executeUpdate();
     }
+}
 
     public static List<String> getUnreadNotifications(int memberId) throws SQLException {
         Connection conn = DBConnection.connect();

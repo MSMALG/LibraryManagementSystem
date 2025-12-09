@@ -3,48 +3,45 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.librarymanagementsystem;
-
 /**
  *
  * @author user
  */
-
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset; // Import this
+import java.time.ZonedDateTime; // Import this
 
 public class HoldQueueManager {
-
-    private static final int NOTIFY_HOURS = 48;
+    //private static final int NOTIFY_HOURS = 48;
+    private static final int NOTIFY_HOURS = 0; // 0 hours
+    private static final int NOTIFY_MINUTES = 2; 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
     /**
      * Notify the next waiting member for a book (if any).
      * Marks hold.status = 'NOTIFIED' and sets expires_at.
      */
-    public static void notifyNext(int bookId) throws SQLException {
-        // find next WAITING hold
-        HoldDAO.Hold next = HoldDAO.findNextWaiting(bookId);
-        if (next == null) return;
-
-        String expiresAt = LocalDateTime.now().plusHours(NOTIFY_HOURS).format(FMT);
-
-        // mark notified
-        HoldDAO.markNotified(next.holdId, expiresAt);
-
-        // save notification
-        String msg = "Your reserved book (ID: " + bookId + ") is available. Pick up before " + expiresAt;
-        NotificationDAO.addNotification(next.memberId, msg);
-    }
-
+public static void notifyNext(int bookId) throws SQLException {
+    HoldDAO.Hold next = HoldDAO.findNextWaiting(bookId);
+    if (next == null) return;
+    /*String expiresAt = LocalDateTime.now()
+        .plusMinutes(NOTIFY_MINUTES)
+        .format(FMT);*/
+    String expiresAt = ZonedDateTime.now(ZoneOffset.UTC) // Get current time in UTC
+            .plusMinutes(NOTIFY_MINUTES)
+            .format(FMT); 
+    HoldDAO.markNotified(next.holdId, expiresAt);
+    String msg = "Your reserved book (ID: " + bookId + ") is available. Pick up before " + expiresAt;
+    NotificationDAO.addNotification(next.memberId, msg);
+}
     /**
      * Cancel a hold (set CANCELLED)
      */
     public static void cancelHold(int holdId) throws SQLException {
         HoldDAO.cancelHold(holdId);
     }
-
-   
+  
     public static void expireNotifiedAndAdvanceForAllBooks() throws SQLException {
         Connection conn = DBConnection.connect();
         String sql = "SELECT DISTINCT book_id FROM holds WHERE status='NOTIFIED' AND expires_at < datetime('now')";
@@ -56,7 +53,6 @@ public class HoldQueueManager {
             }
         }
     }
-
     private static void expireNotifiedAndAdvance(int bookId) throws SQLException {
         Connection conn = DBConnection.connect();
         // get expired notified holds
@@ -72,4 +68,4 @@ public class HoldQueueManager {
         }
         notifyNext(bookId);
     }
-}
+} 
