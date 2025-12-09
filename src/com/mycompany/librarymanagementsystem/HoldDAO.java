@@ -54,7 +54,6 @@ public class HoldDAO {
         }
         return null;
     }
-    // NEW — CORRECT (skips NO_SHOW and PICKED_UP)
 /*public static Hold findNextWaiting(int bookId) {
     String sql = "SELECT * FROM holds WHERE book_id = ? AND status NOT IN ('NO_SHOW', 'PICKED_UP') ORDER BY position ASC LIMIT 1";
     try (Connection conn = DBConnection.connect();
@@ -88,24 +87,24 @@ public class HoldDAO {
         }
     }
     // Remove expired NOTIFIED holds so the next in queue can be notified
-public static void removeExpiredHolds() {
-    String sql = "DELETE FROM holds WHERE status='NOTIFIED' AND expires_at < datetime('now')";
-    try (Connection conn = DBConnection.connect();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.executeUpdate();
-    } catch (Exception e) {
-        e.printStackTrace();
+    public static void removeExpiredHolds() {
+        String sql = "DELETE FROM holds WHERE status='NOTIFIED' AND expires_at < datetime('now')";
+        try (Connection conn = DBConnection.connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-}
-// Cancel a specific hold
-public static void cancelHold(int holdId) {
-    String sql = "DELETE FROM holds WHERE hold_id=?";
-    try (Connection conn = DBConnection.connect();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, holdId);
-        ps.executeUpdate();
-    } catch (Exception e) {
-        e.printStackTrace();
+    // Cancel a specific hold
+    public static void cancelHold(int holdId) {
+        String sql = "DELETE FROM holds WHERE hold_id=?";
+        try (Connection conn = DBConnection.connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, holdId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-}
 } 

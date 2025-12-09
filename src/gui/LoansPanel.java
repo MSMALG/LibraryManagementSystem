@@ -1,9 +1,11 @@
 package gui;
+
 import com.mycompany.librarymanagementsystem.DBConnection;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
+
 public class LoansPanel extends JPanel {
     private LibraryMainFrame parent;
     private JTable loansTable;

@@ -1,4 +1,5 @@
 package gui;
+
 import com.mycompany.librarymanagementsystem.DBConnection;
 import com.mycompany.librarymanagementsystem.MemberDAO;
 import javax.swing.*;
@@ -6,6 +7,7 @@ import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+
 public class LibraryMainFrame extends JFrame {
     private CardLayout cardLayout;
     private JPanel cardPanel;

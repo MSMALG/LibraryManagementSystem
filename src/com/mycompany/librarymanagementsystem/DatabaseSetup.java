@@ -10,7 +10,7 @@ public class DatabaseSetup {
             Connection conn = DBConnection.connect();
             Statement stmt = conn.createStatement();
 
-            // core tables (safe: CREATE TABLE IF NOT EXISTS)
+            // core tables
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS members (
                     member_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +53,7 @@ public class DatabaseSetup {
                 );
             """);
 
-            // original simple holds and fines (kept for safety if fresh DB)
+            
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS holds (
                     hold_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,7 +95,7 @@ public class DatabaseSetup {
                 stmt.execute("ALTER TABLE holds ADD COLUMN expires_at TEXT;");
             } catch (Exception ignore) {}*/
             
-            // In DatabaseSetup.java - Update the ALTER TABLE statements
+            // the ALTER TABLE statements
             try {
                 stmt.execute("ALTER TABLE holds ADD COLUMN status TEXT DEFAULT 'WAITING';");
             } catch (Exception ignore) {}

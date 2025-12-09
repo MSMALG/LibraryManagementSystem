@@ -10,11 +10,11 @@ package com.mycompany.librarymanagementsystem;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.ZoneOffset; // Import this
-import java.time.ZonedDateTime; // Import this
+//to make the time more consistent with sqlite defalut time zone which is UTC
+import java.time.ZoneOffset; 
+import java.time.ZonedDateTime; 
 
 public class HoldQueueManager {
-    //private static final int NOTIFY_HOURS = 48;
     private static final int NOTIFY_HOURS = 0; // 0 hours
     private static final int NOTIFY_MINUTES = 2; 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -22,19 +22,19 @@ public class HoldQueueManager {
      * Notify the next waiting member for a book (if any).
      * Marks hold.status = 'NOTIFIED' and sets expires_at.
      */
-public static void notifyNext(int bookId) throws SQLException {
-    HoldDAO.Hold next = HoldDAO.findNextWaiting(bookId);
-    if (next == null) return;
-    /*String expiresAt = LocalDateTime.now()
-        .plusMinutes(NOTIFY_MINUTES)
-        .format(FMT);*/
-    String expiresAt = ZonedDateTime.now(ZoneOffset.UTC) // Get current time in UTC
+    public static void notifyNext(int bookId) throws SQLException {
+        HoldDAO.Hold next = HoldDAO.findNextWaiting(bookId);
+        if (next == null) return;
+        /*String expiresAt = LocalDateTime.now()
             .plusMinutes(NOTIFY_MINUTES)
-            .format(FMT); 
-    HoldDAO.markNotified(next.holdId, expiresAt);
-    String msg = "Your reserved book (ID: " + bookId + ") is available. Pick up before " + expiresAt;
-    NotificationDAO.addNotification(next.memberId, msg);
-}
+            .format(FMT);*/
+        String expiresAt = ZonedDateTime.now(ZoneOffset.UTC) // Get current time in UTC
+                .plusMinutes(NOTIFY_MINUTES)
+                .format(FMT); 
+        HoldDAO.markNotified(next.holdId, expiresAt);
+        String msg = "Your reserved book (ID: " + bookId + ") is available. Pick up before " + expiresAt;
+        NotificationDAO.addNotification(next.memberId, msg);
+    }
     /**
      * Cancel a hold (set CANCELLED)
      */

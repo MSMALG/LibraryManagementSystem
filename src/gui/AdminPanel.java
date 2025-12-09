@@ -268,7 +268,7 @@ public class AdminPanel extends JPanel {
     } catch (SQLException ex) {
         JOptionPane.showMessageDialog(this, "Notify failed: " + ex.getMessage());
     }
-});
+    });
         cancelHoldBtn.addActionListener(e -> {
             int row = holdsTable.getSelectedRow();
             if (row == -1) return;

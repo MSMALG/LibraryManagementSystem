@@ -153,12 +153,12 @@ public void showUnreadNotificationsOnlyOnce() {
     }
 }
 
-// This is called when user clicks the button — always shows something
-public void showNotificationsPopup() {
-    if (currentUserEmail == null) {
-        JOptionPane.showMessageDialog(this, "Please log in first.");
-        return;
-    }
+    // This is called when user clicks the button ;always shows something
+    public void showNotificationsPopup() {
+        if (currentUserEmail == null) {
+            JOptionPane.showMessageDialog(this, "Please log in first.");
+            return;
+        }
 
     try (Connection conn = DBConnection.connect();
          PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
