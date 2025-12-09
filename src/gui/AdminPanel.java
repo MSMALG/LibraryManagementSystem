@@ -283,17 +283,44 @@ public class AdminPanel extends JPanel {
         tabs.addTab("Holds", p);
         loadHolds();
     }
-    private void initReportsTab() {
-        JPanel p = new JPanel(new GridLayout(3,1,8,8));
-        exportTopBorrowedBtn = new JButton("Export Top Borrowed (CSV)");
-        exportOverdueBtn = new JButton("Export Overdue (CSV)");
-        exportFinesBtn = new JButton("Export Fines Summary (CSV)");
-        p.add(exportTopBorrowedBtn); p.add(exportOverdueBtn); p.add(exportFinesBtn);
-        exportTopBorrowedBtn.addActionListener(e -> doExportTop());
-        exportOverdueBtn.addActionListener(e -> doExportOverdue());
-        exportFinesBtn.addActionListener(e -> doExportFines());
-        tabs.addTab("Reports", p);
-    }
+private void initReportsTab() {
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+
+    exportTopBorrowedBtn = new JButton("Export Top Borrowed (CSV)");
+    exportOverdueBtn = new JButton("Export Overdue (CSV)");
+    exportFinesBtn = new JButton("Export Fines Summary (CSV)");
+
+    Dimension btnSize = new Dimension(300, 60);
+    exportTopBorrowedBtn.setPreferredSize(btnSize);
+    exportTopBorrowedBtn.setMaximumSize(btnSize); 
+    exportOverdueBtn.setPreferredSize(btnSize);
+    exportOverdueBtn.setMaximumSize(btnSize);
+    exportFinesBtn.setPreferredSize(btnSize);
+    exportFinesBtn.setMaximumSize(btnSize);
+
+    // Centering the buttons horizontally
+    exportTopBorrowedBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+    exportOverdueBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+    exportFinesBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    // Adding some vertical space between buttons
+    p.add(Box.createVerticalGlue());
+    p.add(exportTopBorrowedBtn);
+    p.add(Box.createRigidArea(new Dimension(0, 20)));
+    p.add(exportOverdueBtn);
+    p.add(Box.createRigidArea(new Dimension(0, 20)));
+    p.add(exportFinesBtn);
+    p.add(Box.createVerticalGlue());
+
+    exportTopBorrowedBtn.addActionListener(e -> doExportTop());
+    exportOverdueBtn.addActionListener(e -> doExportOverdue());
+    exportFinesBtn.addActionListener(e -> doExportFines());
+
+    tabs.addTab("Reports", p);
+}
+
+
     private Integer getSelectedBookIdFromHolds() {
         int row = holdsTable.getSelectedRow();
         if (row == -1) return null;
