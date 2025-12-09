@@ -45,33 +45,7 @@ public class ReportsController {
         return rows;
     }
 
-    /*public static List<String[]> overdueBooks() throws SQLException {
-        List<String[]> rows = new ArrayList<>();
-        Connection conn = DBConnection.connect();
-        String sql = """
-            SELECT l.loan_id, m.name AS member_name, b.title, l.due_date
-            FROM loans l
-            JOIN members m ON l.member_id = m.member_id
-            JOIN copies c ON l.copy_id = c.copy_id
-            JOIN books b ON c.book_id = b.book_id
-            WHERE l.return_date IS NULL AND date(l.due_date) < date('now')
-            ORDER BY l.due_date ASC
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                rows.add(new String[]{
-                    String.valueOf(rs.getInt("loan_id")),
-                    rs.getString("member_name"),
-                    rs.getString("title"),
-                    rs.getString("due_date")
-                });
-            }
-        }
-        return rows;
-    }*/
-    // In ReportsController.java
-
+    
     public static List<String[]> overdueBooks() throws SQLException {
         List<String[]> rows = new ArrayList<>();
         Connection conn = DBConnection.connect();
@@ -81,17 +55,7 @@ public class ReportsController {
                 System.out.println("DEBUG: Database current UTC time is: " + rsTime.getString("db_now"));
             }
         }
-        /*String sql = """
-            SELECT l.loan_id, m.name AS member_name, b.title, l.due_date
-            FROM loans l
-            JOIN members m ON l.member_id = m.member_id
-            JOIN copies c ON l.copy_id = c.copy_id
-            JOIN books b ON c.book_id = b.book_id
-            -- We compare the full timestamp strings directly
-            WHERE l.return_date IS NULL AND l.due_date < DATETIME('now', 'UTC')
-            ORDER BY l.due_date ASC
-        """;*/
-          String sql = """
+            String sql = """
             SELECT l.loan_id, m.name AS member_name, b.title, l.due_date
             FROM loans l
             JOIN members m ON l.member_id = m.member_id
