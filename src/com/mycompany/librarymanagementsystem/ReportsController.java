@@ -45,7 +45,7 @@ public class ReportsController {
         return rows;
     }
 
-    public static List<String[]> overdueBooks() throws SQLException {
+    /*public static List<String[]> overdueBooks() throws SQLException {
         List<String[]> rows = new ArrayList<>();
         Connection conn = DBConnection.connect();
         String sql = """
@@ -69,7 +69,55 @@ public class ReportsController {
             }
         }
         return rows;
+    }*/
+    // In ReportsController.java
+
+    public static List<String[]> overdueBooks() throws SQLException {
+        List<String[]> rows = new ArrayList<>();
+        Connection conn = DBConnection.connect();
+         try (Statement stmt = conn.createStatement();
+             ResultSet rsTime = stmt.executeQuery("SELECT DATETIME('now', 'UTC') AS db_now")) {
+            if (rsTime.next()) {
+                System.out.println("DEBUG: Database current UTC time is: " + rsTime.getString("db_now"));
+            }
+        }
+        /*String sql = """
+            SELECT l.loan_id, m.name AS member_name, b.title, l.due_date
+            FROM loans l
+            JOIN members m ON l.member_id = m.member_id
+            JOIN copies c ON l.copy_id = c.copy_id
+            JOIN books b ON c.book_id = b.book_id
+            -- We compare the full timestamp strings directly
+            WHERE l.return_date IS NULL AND l.due_date < DATETIME('now', 'UTC')
+            ORDER BY l.due_date ASC
+        """;*/
+          String sql = """
+            SELECT l.loan_id, m.name AS member_name, b.title, l.due_date
+            FROM loans l
+            JOIN members m ON l.member_id = m.member_id
+            JOIN copies c ON l.copy_id = c.copy_id
+            JOIN books b ON c.book_id = b.book_id
+            WHERE l.return_date IS NULL AND DATETIME(l.due_date) < DATETIME('now', 'localtime')
+            ORDER BY l.due_date ASC
+        """;
+        System.out.println("DEBUG: Executing SQL: " + sql);
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                rows.add(new String[]{
+                    String.valueOf(rs.getInt("loan_id")),
+                    rs.getString("member_name"),
+                    rs.getString("title"),
+                    rs.getString("due_date")
+                });
+            }
+        }
+        
+        
+        System.out.println("DEBUG: Overdue rows found: " + rows.size());
+        return rows;
     }
+
 
     public static List<String[]> finesSummary() throws SQLException {
         List<String[]> rows = new ArrayList<>();

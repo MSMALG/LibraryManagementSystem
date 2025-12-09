@@ -97,6 +97,7 @@ package gui;
 import com.mycompany.librarymanagementsystem.DBConnection;
 import com.mycompany.librarymanagementsystem.HoldQueueManager;
 import java.sql.*;
+import java.time.ZoneId;
 import java.time.ZonedDateTime; // Use ZonedDateTime instead of LocalDate
 import java.time.format.DateTimeFormatter; // Need this formatter
 import java.time.temporal.ChronoUnit;
@@ -105,7 +106,10 @@ import java.time.ZoneOffset;
 public class ReturnController {
 
     // Define the formatter used for storage/retrieval
-    private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ISO_ZONED_DATE_TIME;
+    //private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ISO_ZONED_DATE_TIME;
+    //private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC);
+    private static final DateTimeFormatter DB_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // Removed .withZone(ZoneOffset.UTC)
+
 
     public boolean tryReturn(String userEmail, int bookId) {
         try (Connection conn = DBConnection.connect()) {
@@ -141,8 +145,12 @@ public class ReturnController {
             int copyId = rs.getInt("copy_id");
             
             // FIX 1: Parse the full timestamp using ZonedDateTime
-            ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT);
-            ZonedDateTime today = ZonedDateTime.now(ZoneOffset.UTC); // Get current time in UTC
+            //ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT);
+            //ZonedDateTime today = ZonedDateTime.now(ZoneOffset.UTC); // Get current time in UTC
+            //ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT);
+            /*ZonedDateTime today = ZonedDateTime.now(ZoneOffset.UTC); 
+            ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT.withZone(ZoneOffset.systemDefault()));
+            // Store the return date the same way
 
             // FIX 2: Calculate fine based on minutes
             double fineAmount = 0;
@@ -157,6 +165,23 @@ public class ReturnController {
                     "UPDATE loans SET return_date=? WHERE loan_id=?");
             // FIX 3: Store the return date in the same full timestamp format
             ups.setString(1, today.format(DB_FMT));
+            ups.setInt(2, loanId);
+            ups.executeUpdate();*/
+             ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT.withZone(ZoneId.systemDefault()));
+            ZonedDateTime today = ZonedDateTime.now(ZoneId.systemDefault()); // Get current time in local system timezone
+            
+            // FIX 2: Calculate fine based on minutes
+            double fineAmount = 0;
+            if (today.isAfter(due)) {
+                long minutesLate = ChronoUnit.MINUTES.between(due, today);
+                fineAmount = minutesLate * 0.10; 
+            }
+
+            // Update loan as returned
+            PreparedStatement ups = conn.prepareStatement( // 'ups' is declared here
+                    "UPDATE loans SET return_date=? WHERE loan_id=?");
+            // Use 'today' ZonedDateTime formatted as a string
+            ups.setString(1, today.format(DB_FMT)); 
             ups.setInt(2, loanId);
             ups.executeUpdate();
 

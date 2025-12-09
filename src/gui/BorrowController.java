@@ -13,6 +13,8 @@ public class BorrowController {
     private static final int LOAN_DAYS = 14;
     private static final int LOAN_MINS = 2;
 
+    //private static final DateTimeFormatter SQLITE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
+    private static final DateTimeFormatter SQLITE_DB_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // Removed .withZone(ZoneOffset.UTC)
 
     public boolean tryBorrow(String userEmail, int bookId) {
         try (Connection conn = DBConnection.connect()) {
@@ -41,17 +43,27 @@ public class BorrowController {
             //String today = LocalDate.now().format(FMT);
             //String due = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
             //String due = ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(LOAN_MINS).format(FMT);
-            String today = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-            String due = ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(LOAN_MINS).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-            try (PreparedStatement ps = conn.prepareStatement(
+            //String today = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+            //String due = ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(LOAN_MINS).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+            String today = ZonedDateTime.now().format(SQLITE_DB_FORMATTER); 
+            String due = ZonedDateTime.now().plusMinutes(LOAN_MINS).format(SQLITE_DB_FORMATTER);
+            /*try (PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO loans(member_id, copy_id, loan_date, due_date) VALUES(?,?,?,?)")) {
                 ps.setInt(1, memberId);
                 ps.setInt(2, copyId);
                 ps.setString(3, today);
                 ps.setString(4, due);
                 ps.executeUpdate();
-            }
-
+            }*/
+           try (PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO loans(member_id, copy_id, loan_date, due_date) VALUES(?,?,?,?)")) {
+            ps.setInt(1, memberId);
+            ps.setInt(2, copyId);
+            ps.setString(3, today); 
+            ps.setString(4, due);   
+            ps.executeUpdate();
+            System.out.println("DEBUG: Inserted Loan Due Date: " + due);
+        }
             try (PreparedStatement ps = conn.prepareStatement(
                     "UPDATE copies SET status='borrowed' WHERE copy_id=?")) {
                 ps.setInt(1, copyId);
