@@ -93,7 +93,7 @@ public class LibraryMainFrame extends JFrame {
         homePanel.showUnreadNotificationsOnlyOnce();
     }
    
-    //secure method to handle Admin Panel access
+    //handle Admin Panel access
     public void attemptShowAdminPanel(String roleFromHomePanel) {
     if (!"Librarian".equalsIgnoreCase(activeUserRole)) {
         JOptionPane.showMessageDialog(this,
@@ -122,7 +122,7 @@ public class LibraryMainFrame extends JFrame {
         adminFrame.requestFocus();
     }
 }
-    // convenience method to open the dashboard (tabs)
+    // open the dashboard (tabs)
     public void showBooks() {
         // ensure panels know the current email (in case user navigated)
         if (currentUserEmail != null) {
@@ -142,7 +142,7 @@ public class LibraryMainFrame extends JFrame {
         cardLayout.show(cardPanel, "LOANS");
     }
    
-    // called by LoginPanel when authenticating (used earlier)
+    // called by LoginPanel when authenticating 
     public String checkCredentialsFromDatabase(String email, String password) {
         boolean canLogin = MemberDAO.login(email, password);
         if (!canLogin) return null;
