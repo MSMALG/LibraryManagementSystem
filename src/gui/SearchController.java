@@ -12,23 +12,24 @@ public class SearchController {
      * Search for books and return a List of BookDAO.Book DTOs.
      * Uses BookDAO.searchBooksList(...) which closes DB resources properly.
      */
+    
     public List<BookDAO.Book> searchList(String keyword, String filter) throws SQLException {
         if (keyword == null) keyword = "";
         keyword = keyword.trim();
 
-        // If "All" selected, use BookDAO convenience method
+        // If "All" selected, use BookDAO  method
         if (filter == null || filter.startsWith("All")) {
             return BookDAO.searchBooksList(keyword);
         }
 
-        // Map filter label to actual column name (safe mapping)
+        // Map filter label to actual column name 
         String column;
         switch (filter.toLowerCase()) {
             case "title": column = "title"; break;
             case "author": column = "author"; break;
             case "isbn": column = "isbn"; break;
             case "category": column = "category"; break;
-            default: column = "title"; break; // fallback
+            default: column = "title"; break; 
         }
 
         // Run parameterized query for the requested column and return mapped list
@@ -53,9 +54,8 @@ public class SearchController {
         }
     }
 
-    /**
-     * Return copies info text for a book (safe resource handling).
-     */
+
+    //Return copies info text for a book     
     public String getCopiesInfo(int bookId) {
         try (Connection conn = DBConnection.connect();
              PreparedStatement ps1 = conn.prepareStatement("SELECT COUNT(*) AS c FROM copies WHERE book_id=?");
