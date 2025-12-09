@@ -17,6 +17,7 @@ public class HomePanel extends JPanel {
     private JButton adminPanelButton;
     private String currentUserRole;
     private String currentUserEmail;
+    private int currentMemberId = -1; // store the logged-in member ID
 
     // Notification components
     private JPanel bottomPanel;
@@ -65,9 +66,9 @@ public class HomePanel extends JPanel {
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Notification Button (text + badge)
-        notificationBtn = new JButton("Notifications");  // ← Add spaces!
+        notificationBtn = new JButton("Notifications");  
         notificationBtn.setFont(new Font("Arial", Font.BOLD, 13));
-        notificationBtn.setPreferredSize(new Dimension(120, 35));
+        notificationBtn.setPreferredSize(new Dimension(140, 35));
         notificationBtn.setFocusPainted(false);
         notificationBtn.setHorizontalTextPosition(SwingConstants.LEFT);  
         notificationBtn.setMargin(new Insets(5, 15, 5, 15));  
@@ -78,12 +79,14 @@ public class HomePanel extends JPanel {
         badgeLabel.setForeground(Color.WHITE);
         badgeLabel.setOpaque(true);
         badgeLabel.setBackground(Color.RED);
-        badgeLabel.setPreferredSize(new Dimension(100, 35));
+        badgeLabel.setPreferredSize(new Dimension(20, 20)); 
         badgeLabel.setVisible(false);
 
-        // Overlay badge on button (top-right)
-        notificationBtn.setLayout(new OverlayLayout(notificationBtn));
+        // Using Null layout for absolute positioning of the badge within the button
+        notificationBtn.setLayout(null);
+        badgeLabel.setBounds(notificationBtn.getPreferredSize().width - 25, 5, 20, 20); // Position it top-right
         notificationBtn.add(badgeLabel);
+
 
         // Click → show notifications
         notificationBtn.addActionListener(e -> showNotificationsPopup());
@@ -107,6 +110,8 @@ public class HomePanel extends JPanel {
 
     public void setCurrentUserEmail(String email) {
         this.currentUserEmail = email;
+        updateNotificationBadge(); 
+
     }
 
     private void addActions() {
@@ -117,41 +122,44 @@ public class HomePanel extends JPanel {
     }
 
     // This is called only on login — shows popup ONLY if unread exist
-public void showUnreadNotificationsOnlyOnce() {
-    if (currentUserEmail == null) return;
+    public void showUnreadNotificationsOnlyOnce() {
+        if (currentUserEmail == null) return;
 
-    try (Connection conn = DBConnection.connect();
-         PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
-        ps.setString(1, currentUserEmail);
-        try (ResultSet rs = ps.executeQuery()) {
-            if (!rs.next()) return;
-            int memberId = rs.getInt("member_id");
+        //try (Connection conn = DBConnection.connect();
+          //  PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
+            //ps.setString(1, currentUserEmail);
+            //try (ResultSet rs = ps.executeQuery()) {
+               // if (!rs.next()) return;
+                //int memberId = rs.getInt("member_id");
+               try {
+                    findCurrentMemberId(); 
+                    if (currentMemberId == -1) return;
+                    List<String> notifs = NotificationDAO.getUnreadNotifications(currentMemberId);
+                    if (notifs.isEmpty()) return;  
 
-            List<String> notifs = NotificationDAO.getUnreadNotifications(memberId);
-            if (notifs.isEmpty()) return;  
+                // Show only once per login
+                StringBuilder msg = new StringBuilder("<html><b>You have " + notifs.size() + " new notification(s):</b><br><hr><br>");
+                for (String n : notifs) {
+                    msg.append("• ").append(n).append("<br><br>");
+                }
+                msg.append("</html>");
 
-            // Show only once per login
-            StringBuilder msg = new StringBuilder("<html><b>You have " + notifs.size() + " new notification(s):</b><br><hr><br>");
-            for (String n : notifs) {
-                msg.append("• ").append(n).append("<br><br>");
-            }
-            msg.append("</html>");
+                int choice = JOptionPane.showOptionDialog(
+                    this, msg.toString(), "New Notifications",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+                    null, new String[]{"Mark as Read", "Close"}, "Mark as Read"
+                );
 
-            int choice = JOptionPane.showOptionDialog(
-                this, msg.toString(), "New Notifications",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
-                null, new String[]{"Mark as Read", "Close"}, "Mark as Read"
-            );
+                if (choice == 0) {
+                    NotificationDAO.markAllRead(currentMemberId);
+                    JOptionPane.showMessageDialog(this, "All notifications marked as read!");
+                    updateNotificationBadge(); ////////
 
-            if (choice == 0) {
-                NotificationDAO.markAllRead(memberId);
-                JOptionPane.showMessageDialog(this, "All notifications marked as read!");
-            }
+                }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-    } catch (Exception ex) {
-        ex.printStackTrace();
     }
-}
 
     // This is called when user clicks the button ;always shows something
     public void showNotificationsPopup() {
@@ -160,14 +168,17 @@ public void showUnreadNotificationsOnlyOnce() {
             return;
         }
 
-    try (Connection conn = DBConnection.connect();
-         PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
-        ps.setString(1, currentUserEmail);
-        try (ResultSet rs = ps.executeQuery()) {
-            if (!rs.next()) return;
-            int memberId = rs.getInt("member_id");
-
-            List<String> notifs = NotificationDAO.getUnreadNotifications(memberId);
+    //try (Connection conn = DBConnection.connect();
+      //   PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
+        //ps.setString(1, currentUserEmail);
+        //try (ResultSet rs = ps.executeQuery()) {
+          //  if (!rs.next()) return;
+            //int memberId = rs.getInt("member_id");
+            
+            try {
+                 findCurrentMemberId();
+            if (currentMemberId == -1) return;
+            List<String> notifs = NotificationDAO.getUnreadNotifications(currentMemberId);
 
             if (notifs.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No new notifications.\nYou're all caught up!", 
@@ -184,13 +195,50 @@ public void showUnreadNotificationsOnlyOnce() {
                 );
 
                 if (choice == 0) {
-                    NotificationDAO.markAllRead(memberId);
+                    NotificationDAO.markAllRead(currentMemberId);
                     JOptionPane.showMessageDialog(this, "Marked as read!");
+                    updateNotificationBadge(); 
+                    
                 }
-            }
+            
         }
     } catch (Exception ex) {
         ex.printStackTrace();
     }
 }
+     private void findCurrentMemberId() throws SQLException {
+        if (currentUserEmail == null || currentMemberId != -1) return;
+        try (Connection conn = DBConnection.connect();
+             PreparedStatement ps = conn.prepareStatement("SELECT member_id FROM members WHERE email = ?")) {
+            ps.setString(1, currentUserEmail);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    currentMemberId = rs.getInt("member_id");
+                }
+            }
+        }
+    }
+     
+     public void updateNotificationBadge() {
+        if (currentUserEmail == null) return;
+        try {
+            findCurrentMemberId();
+            if (currentMemberId == -1) return;
+
+            int unreadCount = NotificationDAO.getUnreadNotificationCount(currentMemberId);
+
+            if (unreadCount > 0) {
+                badgeLabel.setText(String.valueOf(unreadCount));
+                badgeLabel.setVisible(true);
+            } else {
+                badgeLabel.setVisible(false);
+            }
+            // Revalidate/repaint necessary since we used null layout
+            notificationBtn.revalidate();
+            notificationBtn.repaint();
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 }

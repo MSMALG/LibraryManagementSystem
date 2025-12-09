@@ -49,14 +49,33 @@ public class NotificationDAO {
         }
         return out;
     }
-
+       /**
+     * Gets the count of unread notifications for a specific member.
+     */
+    
     public static void markAllRead(int memberId) throws SQLException {
         Connection conn = DBConnection.connect();
-        String sql = "UPDATE notifications SET read=1 WHERE member_id=?";
+        String sql = "UPDATE notifications SET read=1 WHERE member_id=?"; 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, memberId);
             ps.executeUpdate();
         }
+    }
+    
+    public static int getUnreadNotificationCount(int memberId) throws SQLException {
+        int count = 0;
+        // Using 'read' column name and check for 0 (unread)
+        String sql = "SELECT COUNT(*) AS count FROM notifications WHERE member_id = ? AND read = 0"; 
+        try (Connection conn = DBConnection.connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, memberId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt("count");
+                }
+            }
+        }
+        return count;
     }
 }
 
