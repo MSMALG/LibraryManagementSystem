@@ -67,10 +67,10 @@ public class HomePanel extends JPanel {
         // Notification Button (text + badge)
         notificationBtn = new JButton("Notifications");  // ← Add spaces!
         notificationBtn.setFont(new Font("Arial", Font.BOLD, 13));
-        notificationBtn.setForeground(new Color(0, 100, 200));
+        notificationBtn.setPreferredSize(new Dimension(120, 35));
         notificationBtn.setFocusPainted(false);
-        notificationBtn.setHorizontalTextPosition(SwingConstants.LEFT);  // ← Important!
-        notificationBtn.setMargin(new Insets(5, 15, 5, 15));  // ← More space for text
+        notificationBtn.setHorizontalTextPosition(SwingConstants.LEFT);  
+        notificationBtn.setMargin(new Insets(5, 15, 5, 15));  
 
         // Badge (small red circle with number)
         badgeLabel = new JLabel("", SwingConstants.CENTER);
@@ -128,7 +128,7 @@ public void showUnreadNotificationsOnlyOnce() {
             int memberId = rs.getInt("member_id");
 
             List<String> notifs = NotificationDAO.getUnreadNotifications(memberId);
-            if (notifs.isEmpty()) return;  // ← No popup if none!
+            if (notifs.isEmpty()) return;  
 
             // Show only once per login
             StringBuilder msg = new StringBuilder("<html><b>You have " + notifs.size() + " new notification(s):</b><br><hr><br>");
