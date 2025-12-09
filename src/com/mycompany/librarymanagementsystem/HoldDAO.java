@@ -54,26 +54,6 @@ public class HoldDAO {
         }
         return null;
     }
-/*public static Hold findNextWaiting(int bookId) {
-    String sql = "SELECT * FROM holds WHERE book_id = ? AND status NOT IN ('NO_SHOW', 'PICKED_UP') ORDER BY position ASC LIMIT 1";
-    try (Connection conn = DBConnection.connect();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, bookId);
-        try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return new Hold(
-                    rs.getInt("hold_id"),
-                    rs.getInt("member_id"),
-                    rs.getInt("book_id"),
-                    rs.getString("status")
-                );
-            }
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return null;
-}*/
     // Mark a hold as notified and set expiration
     public static void markNotified(int holdId, String expiresAt) {
         String sql = "UPDATE holds SET status='NOTIFIED', notified_at=datetime('now'), expires_at=? WHERE hold_id=?";
