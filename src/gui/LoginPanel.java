@@ -145,7 +145,7 @@ public class LoginPanel extends JPanel {
             return;
         }
         // Fetch the real name from DB
-        String realName = standardizedEmail;  // fallback
+        String realName = standardizedEmail;  
             try (Connection conn = DBConnection.connect();
                  PreparedStatement ps = conn.prepareStatement("SELECT name FROM members WHERE email = ?")) {
                 ps.setString(1, standardizedEmail);
@@ -158,7 +158,7 @@ public class LoginPanel extends JPanel {
                 ex.printStackTrace();
             }
 
-            // pass the REAL name from the start
+            // pass the real name from the start
             parentFrame.showHome(realName, role, standardizedEmail);
            }
 
