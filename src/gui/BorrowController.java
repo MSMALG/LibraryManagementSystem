@@ -11,7 +11,7 @@ public class BorrowController {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final int LOAN_DAYS = 14;
-    private static final int LOAN_MINS = 2;
+    private static final int LOAN_MINS = 2; //for testing
 
     private static final DateTimeFormatter SQLITE_DB_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); 
 
@@ -41,8 +41,11 @@ public class BorrowController {
 
             //String today = LocalDate.now().format(FMT);
             //String due = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
+            //////To test run the minutes instead of the "LOAN_DAYS" version
+            //String today = ZonedDateTime.now().format(SQLITE_DB_FORMATTER); 
+            //String due = ZonedDateTime.now().plusMinutes(LOAN_MINS).format(SQLITE_DB_FORMATTER);
             String today = ZonedDateTime.now().format(SQLITE_DB_FORMATTER); 
-            String due = ZonedDateTime.now().plusMinutes(LOAN_MINS).format(SQLITE_DB_FORMATTER);
+            String due = ZonedDateTime.now().plusDays(LOAN_DAYS).format(SQLITE_DB_FORMATTER);
 
            try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO loans(member_id, copy_id, loan_date, due_date) VALUES(?,?,?,?)")) {
