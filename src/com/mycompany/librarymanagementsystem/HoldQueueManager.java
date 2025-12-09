@@ -16,8 +16,9 @@ import java.time.ZonedDateTime;
 
 public class HoldQueueManager {
     private static final int NOTIFY_HOURS = 0; // 0 hours
-    private static final int NOTIFY_MINUTES = 2; 
+    private static final int NOTIFY_MINUTES = 2; //hold time = 2 mins for testing
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+   
     /**
      * Notify the next waiting member for a book (if any).
      * Marks hold.status = 'NOTIFIED' and sets expires_at.
@@ -25,9 +26,7 @@ public class HoldQueueManager {
     public static void notifyNext(int bookId) throws SQLException {
         HoldDAO.Hold next = HoldDAO.findNextWaiting(bookId);
         if (next == null) return;
-        /*String expiresAt = LocalDateTime.now()
-            .plusMinutes(NOTIFY_MINUTES)
-            .format(FMT);*/
+
         String expiresAt = ZonedDateTime.now(ZoneOffset.UTC) // Get current time in UTC
                 .plusMinutes(NOTIFY_MINUTES)
                 .format(FMT); 
@@ -35,6 +34,7 @@ public class HoldQueueManager {
         String msg = "Your reserved book (ID: " + bookId + ") is available. Pick up before " + expiresAt;
         NotificationDAO.addNotification(next.memberId, msg);
     }
+    
     /**
      * Cancel a hold (set CANCELLED)
      */
