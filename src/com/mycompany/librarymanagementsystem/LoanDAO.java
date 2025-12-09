@@ -23,21 +23,7 @@ public class LoanDAO {
             e.printStackTrace();
         }
     }
-    /*public static void returnBook(int copyId, int loanId, String returnDate) {
-        Connection conn = DBConnection.connect();
-        String updLoan = "UPDATE loans SET return_date=? WHERE loan_id=?";
-        String updCopy = "UPDATE copies SET status='available' WHERE copy_id=?";
-        try (PreparedStatement ps1 = conn.prepareStatement(updLoan);
-             PreparedStatement ps2 = conn.prepareStatement(updCopy)) {
-            ps1.setString(1, returnDate);
-            ps1.setInt(2, loanId);
-            ps1.executeUpdate();
-            ps2.setInt(1, copyId);
-            ps2.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }*/
+
      public static void returnBook(int copyId, int loanId, ZonedDateTime returnDateTime) {
         Connection conn = null;
         try {
@@ -65,7 +51,7 @@ public class LoanDAO {
                 // Calculate difference in minutes for testing (or days for production)
                 // Using ChronoUnit.MINUTES for your 3-minute test case
                 long minutesLate = ChronoUnit.MINUTES.between(dueDate, returnDateTime);
-                double fineAmount = minutesLate * 0.10; // Example: $0.10 per minute late
+                double fineAmount = minutesLate * 0.10; // $0.10 per minute late
 
                 if (fineAmount > 0) {
                     String insertFineSql = "INSERT INTO fines(member_id, amount) VALUES(?,?)";
@@ -81,7 +67,7 @@ public class LoanDAO {
             // 3. Update the loan record with the return date
             String updLoan = "UPDATE loans SET return_date=? WHERE loan_id=?";
             try (PreparedStatement ps1 = conn.prepareStatement(updLoan)) {
-                // Store the return date in the same ISO format you used for the due date
+                // Store the return date in the same ISO format  used for the due date
                 ps1.setString(1, returnDateTime.format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
                 ps1.setInt(2, loanId);
                 ps1.executeUpdate();
