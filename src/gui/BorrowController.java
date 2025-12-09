@@ -3,6 +3,7 @@ package gui;
 import com.mycompany.librarymanagementsystem.DBConnection;
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.ZoneOffset; 
 import java.time.ZonedDateTime; 
@@ -10,7 +11,7 @@ import java.time.ZonedDateTime;
 public class BorrowController {
 
     private static final DateTimeFormatter SQLITE_DB_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    //private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private static final int LOAN_DAYS = 14;
     private static final int LOAN_MINS = 2; //for testing
@@ -111,7 +112,10 @@ public class BorrowController {
 
             int loanId = rs.getInt("loan_id");
 
-            String newDue = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
+            //String newDue = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
+            String newDue = ZonedDateTime.now(ZoneId.systemDefault())
+                                         .plusDays(LOAN_DAYS)
+                                         .format(SQLITE_DB_FORMATTER); 
 
             PreparedStatement ups = conn.prepareStatement(
                     "UPDATE loans SET due_date=? WHERE loan_id=?");

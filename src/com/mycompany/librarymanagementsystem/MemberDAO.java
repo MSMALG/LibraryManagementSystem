@@ -1,7 +1,7 @@
 package com.mycompany.librarymanagementsystem;
 
 import java.sql.*;
-import org.mindrot.jbcrypt.BCrypt; // Assuming you have jbcrypt imported
+import org.mindrot.jbcrypt.BCrypt; 
 
 public class MemberDAO {
 
@@ -16,7 +16,7 @@ public class MemberDAO {
             ps.setString(3, ""); // Empty old password field
             ps.setString(4, hashedPassword); // Store BCrypt hash
             ps.setString(5, role);
-            ps.setInt(6, forceChange ? 1 : 0); // FIX: Set based on parameter
+            ps.setInt(6, forceChange ? 1 : 0); // Set based on parameter
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();

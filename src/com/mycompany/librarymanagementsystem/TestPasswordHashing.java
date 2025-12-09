@@ -4,7 +4,7 @@ import java.sql.*;
 
 public class TestPasswordHashing {
     public static void main(String[] args) throws SQLException {
-        System.out.println("=== ALL USER PASSWORDS IN DATABASE ===\n");
+        System.out.println("ALL USER PASSWORDS IN DATABASE:\n");
         
         Connection conn = DBConnection.connect();
         Statement stmt = conn.createStatement();
