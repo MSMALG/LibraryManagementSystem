@@ -50,12 +50,17 @@ public class ReturnController {
             //Parse the full timestamp using ZonedDateTime
             ZonedDateTime due = ZonedDateTime.parse(rs.getString("due_date"), DB_FMT.withZone(ZoneId.systemDefault()));
             ZonedDateTime today = ZonedDateTime.now(ZoneId.systemDefault()); // Get current time in local system timezone
-            
+
+            final double FINE_PER_DAY = 2.00; // $2 per day late
+
             //Calculate fine based on minutes
             double fineAmount = 0;
             if (today.isAfter(due)) {
-                long minutesLate = ChronoUnit.MINUTES.between(due, today);
-                fineAmount = minutesLate * 0.10; 
+                //minutes testing
+                /*long minutesLate = ChronoUnit.MINUTES.between(due, today);
+                fineAmount = minutesLate * 0.10; */
+                long daysLate = ChronoUnit.DAYS.between(due, today);
+                fineAmount = daysLate * FINE_PER_DAY;
             }
 
             // Update loan as returned
@@ -81,7 +86,9 @@ public class ReturnController {
                 finePS.setDouble(2, fineAmount);
                 finePS.executeUpdate();
                 
-                JOptionPaneHelper.showInfo(String.format("Book was returned late by %d minutes. A fine of $%.2f has been applied.", ChronoUnit.MINUTES.between(due, today), fineAmount));
+                //JOptionPaneHelper.showInfo(String.format("Book was returned late by %d minutes. A fine of $%.2f has been applied.", ChronoUnit.MINUTES.between(due, today), fineAmount));
+                JOptionPaneHelper.showInfo(String.format("Book was returned late by %d days. A fine of $%.2f has been applied.", ChronoUnit.DAYS.between(due, today), fineAmount));
+
             }
 
             conn.commit();
