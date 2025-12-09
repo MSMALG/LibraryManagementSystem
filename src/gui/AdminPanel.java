@@ -178,52 +178,60 @@ public class AdminPanel extends JPanel {
         tabs.addTab("Members", p);
         loadMembers();
     }
-    private void showMemberDialog(Integer memberId) {
-        JTextField nameField = new JTextField();
-        JTextField emailField = new JTextField();
-        JComboBox<String> roleBox = new JComboBox<>(new String[]{"Member","Librarian"});
-        if (memberId != null) {
-            try {
-                Connection conn = DBConnection.connect();
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM members WHERE member_id=?")) {
-                    ps.setInt(1, memberId);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            nameField.setText(rs.getString("name"));
-                            emailField.setText(rs.getString("email"));
-                            roleBox.setSelectedItem(rs.getString("role"));
-                        }
+  private void showMemberDialog(Integer memberId) {
+    JTextField nameField = new JTextField();
+    JTextField emailField = new JTextField();
+    JComboBox<String> roleBox = new JComboBox<>(new String[]{"Member","Librarian"});
+    if (memberId != null) {
+        try {
+            Connection conn = DBConnection.connect();
+            try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM members WHERE member_id=?")) {
+                ps.setInt(1, memberId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        nameField.setText(rs.getString("name"));
+                        emailField.setText(rs.getString("email"));
+                        roleBox.setSelectedItem(rs.getString("role"));
                     }
                 }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Load member failed: " + ex.getMessage());
-                return;
             }
-        }
-        JPanel p = new JPanel(new GridLayout(3,2,6,6));
-        p.add(new JLabel("Name:")); p.add(nameField);
-        p.add(new JLabel("Email:")); p.add(emailField);
-        p.add(new JLabel("Role:")); p.add(roleBox);
-        int res = JOptionPane.showConfirmDialog(this, p, memberId == null ? "Add Member" : "Edit Member", JOptionPane.OK_CANCEL_OPTION);
-        if (res != JOptionPane.OK_OPTION) return;
-        try {
-            if (memberId == null) {
-                MemberDAO.addMember(nameField.getText(), emailField.getText(), "password123", (String) roleBox.getSelectedItem());
-            } else {
-                Connection conn = DBConnection.connect();
-                try (PreparedStatement ps = conn.prepareStatement("UPDATE members SET name=?, email=?, role=? WHERE member_id=?")) {
-                    ps.setString(1, nameField.getText());
-                    ps.setString(2, emailField.getText());
-                    ps.setString(3, (String) roleBox.getSelectedItem());
-                    ps.setInt(4, memberId);
-                    ps.executeUpdate();
-                }
-            }
-            loadMembers();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Save failed: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Load member failed: " + ex.getMessage());
+            return;
         }
     }
+    JPanel p = new JPanel(new GridLayout(3,2,6,6));
+    p.add(new JLabel("Name:")); p.add(nameField);
+    p.add(new JLabel("Email:")); p.add(emailField);
+    p.add(new JLabel("Role:")); p.add(roleBox);
+    int res = JOptionPane.showConfirmDialog(this, p, memberId == null ? "Add Member" : "Edit Member", JOptionPane.OK_CANCEL_OPTION);
+    if (res != JOptionPane.OK_OPTION) return;
+    try {
+        if (memberId == null) {
+            // Generate a secure random password
+            String randomPassword = generateRandomPassword();
+            // FIX: Pass true to force password change for admin-created accounts
+            MemberDAO.addMember(nameField.getText(), emailField.getText(), randomPassword, (String) roleBox.getSelectedItem(), true);
+            JOptionPane.showMessageDialog(this,
+               "User created!\nTemporary password: " + randomPassword +
+               "\nUser should change it on first login.",
+                 "Success",
+                  JOptionPane.INFORMATION_MESSAGE); 
+        } else {
+            Connection conn = DBConnection.connect();
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE members SET name=?, email=?, role=? WHERE member_id=?")) {
+                ps.setString(1, nameField.getText());
+                ps.setString(2, emailField.getText());
+                ps.setString(3, (String) roleBox.getSelectedItem());
+                ps.setInt(4, memberId);
+                ps.executeUpdate();
+            }
+        }
+        loadMembers();
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this, "Save failed: " + ex.getMessage());
+    }
+}
     private void initHoldsTab() {
         JPanel p = new JPanel(new BorderLayout());
         holdsModel = new DefaultTableModel(new Object[]{"hold_id","book_id","member_id","position","status","notified_at","expires_at"}, 0) {
@@ -474,6 +482,37 @@ private void initReportsTab() {
         }
     });
     tabs.addTab("Copies", p);
-    loadCopies.run();
+    loadCopies.run();} 
+    private String generateRandomPassword() {
+    java.security.SecureRandom random = new java.security.SecureRandom();
+    String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    String lower = "abcdefghijklmnopqrstuvwxyz";
+    String digits = "0123456789";
+    String special = "!@#$%";
+    String allChars = upper + lower + digits + special;
+    
+    StringBuilder sb = new StringBuilder();
+    
+    sb.append(upper.charAt(random.nextInt(upper.length())));
+    sb.append(lower.charAt(random.nextInt(lower.length())));
+    sb.append(digits.charAt(random.nextInt(digits.length())));
+    sb.append(special.charAt(random.nextInt(special.length())));
+    
+    // Fill remaining 8 characters randomly
+    for (int i = 0; i < 8; i++) {
+        sb.append(allChars.charAt(random.nextInt(allChars.length())));
+    }
+    
+    // Shuffle the password for better randomness
+    char[] chars = sb.toString().toCharArray();
+    for (int i = chars.length - 1; i > 0; i--) {
+        int j = random.nextInt(i + 1);
+        char temp = chars[i];
+        chars[i] = chars[j];
+        chars[j] = temp;
+    }
+    
+    return new String(chars);
 }
+
 }

@@ -12,14 +12,15 @@ public class DatabaseSetup {
 
             // core tables
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS members (
-                    member_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    password TEXT NOT NULL,
-                    role TEXT NOT NULL
-                );
-            """);
+                 CREATE TABLE IF NOT EXISTS members (
+                      member_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      name TEXT NOT NULL,
+                      email TEXT UNIQUE NOT NULL,
+                      password TEXT NOT NULL,      -- Keep for backward compatibility
+                      password_hash TEXT,          -- NEW: For hashed passwords
+                        role TEXT NOT NULL
+                    );
+                """);
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS books (
@@ -74,8 +75,12 @@ public class DatabaseSetup {
                     FOREIGN KEY(member_id) REFERENCES members(member_id)
                 );
             """);
-
             // the ALTER TABLE statements
+
+            try {
+                stmt.execute("ALTER TABLE members ADD COLUMN password_hash TEXT;");
+            } catch (Exception ignore) {}
+
             try {
                 stmt.execute("ALTER TABLE holds ADD COLUMN status TEXT DEFAULT 'WAITING';");
             } catch (Exception ignore) {}
@@ -86,6 +91,9 @@ public class DatabaseSetup {
 
             try {
                 stmt.execute("ALTER TABLE holds ADD COLUMN expires_at TEXT;");
+            } catch (Exception ignore) {}
+            try {
+                 stmt.execute("ALTER TABLE members ADD COLUMN force_password_change INTEGER DEFAULT 1;");
             } catch (Exception ignore) {}
 
             // Notifications table
@@ -108,5 +116,6 @@ public class DatabaseSetup {
             System.out.println("Error creating tables: " + e.getMessage());
             e.printStackTrace();
         }
+        
     }
 }
