@@ -9,11 +9,9 @@ import java.time.ZonedDateTime;
 
 public class BorrowController {
 
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter SQLITE_DB_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final int LOAN_DAYS = 14;
     private static final int LOAN_MINS = 2; //for testing
-
-    private static final DateTimeFormatter SQLITE_DB_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); 
 
     public boolean tryBorrow(String userEmail, int bookId) {
         try (Connection conn = DBConnection.connect()) {
