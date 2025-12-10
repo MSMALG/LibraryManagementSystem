@@ -15,7 +15,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime; 
 
 public class HoldQueueManager {
-    private static final int NOTIFY_HOURS = 0; // 0 hours
+    private static final int NOTIFY_HOURS = 48; 
     private static final int NOTIFY_MINUTES = 2; //hold time = 2 mins for testing
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
    
@@ -28,7 +28,7 @@ public class HoldQueueManager {
         if (next == null) return;
 
         String expiresAt = ZonedDateTime.now(ZoneOffset.UTC) // Get current time in UTC
-                .plusMinutes(NOTIFY_MINUTES)
+                .plusHours(NOTIFY_HOURS)
                 .format(FMT); 
         HoldDAO.markNotified(next.holdId, expiresAt);
         String msg = "Your reserved book (ID: " + bookId + ") is available. Pick up before " + expiresAt;
