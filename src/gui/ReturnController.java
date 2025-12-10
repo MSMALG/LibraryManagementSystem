@@ -53,15 +53,21 @@ public class ReturnController {
 
             final double FINE_PER_DAY = 2.00; // $2 per day late
 
-            //Calculate fine based on minutes
+            //Calculate fine based on day
             double fineAmount = 0;
             if (today.isAfter(due)) {
-                //minutes testing
-                /*long minutesLate = ChronoUnit.MINUTES.between(due, today);
-                fineAmount = minutesLate * 0.10; */
                 long daysLate = ChronoUnit.DAYS.between(due, today);
                 fineAmount = daysLate * FINE_PER_DAY;
             }
+            //To test by minutes uncomment the block below
+            /*double fineAmount = 0;
+            if (today.isAfter(due)) {
+                //minutes testing
+                long minutesLate = ChronoUnit.MINUTES.between(due, today); // Uncomment/add this line
+                // long daysLate = ChronoUnit.DAYS.between(due, today); // Comment this line out
+                fineAmount = minutesLate * 0.10; // Use a minute-based rate for testing (e.g., $0.10/min)
+                // fineAmount = daysLate * FINE_PER_DAY; // Comment this line out
+            }*/
 
             // Update loan as returned
             PreparedStatement ups = conn.prepareStatement( 
