@@ -40,13 +40,14 @@ public class BorrowController {
                 return false;
             }
 
-            //String today = LocalDate.now().format(FMT);
-            //String due = LocalDate.now().plusDays(LOAN_DAYS).format(FMT);
-            //////To test run the minutes instead of the "LOAN_DAYS" version
-            //String today = ZonedDateTime.now().format(SQLITE_DB_FORMATTER); 
-            //String due = ZonedDateTime.now().plusMinutes(LOAN_MINS).format(SQLITE_DB_FORMATTER);
+            
+       
             String today = ZonedDateTime.now().format(SQLITE_DB_FORMATTER); 
             String due = ZonedDateTime.now().plusDays(LOAN_DAYS).format(SQLITE_DB_FORMATTER);
+            
+            //To test run the minutes instead of the "LOAN_DAYS" version by minutes uncomment this line and comment the line right above this comment  
+            //String due = ZonedDateTime.now().plusMinutes(LOAN_MINS).format(SQLITE_DB_FORMATTER); 
+
 
            try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO loans(member_id, copy_id, loan_date, due_date) VALUES(?,?,?,?)")) {
