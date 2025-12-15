@@ -28,7 +28,8 @@ public class HoldQueueManager {
         if (next == null) return;
 
         String expiresAt = ZonedDateTime.now(ZoneOffset.UTC) // Get current time in UTC
-                .plusHours(NOTIFY_HOURS)
+                .plusHours(NOTIFY_HOURS) //to test .plusMinutes(NOTIFY_MINUTES)
+
                 .format(FMT); 
         HoldDAO.markNotified(next.holdId, expiresAt);
         String msg = "Your reserved book (ID: " + bookId + ") is available. Pick up before " + expiresAt;
